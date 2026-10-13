@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "Agricultural Rental & Agro Supplies Marketplace",
   "scripts": {
-    "postinstall": "cd server && npm install && npx prisma db push && npm run seed && npm run build",
-    "build": "cd server && npm install && npx prisma db push && npm run seed && npm run build",
+    "postinstall": "cd server && npm install && DATABASE_URL=\"file:./dev.db\" npx prisma db push && DATABASE_URL=\"file:./dev.db\" npm run seed && npm run build",
+    "build": "cd server && npm install && DATABASE_URL=\"file:./dev.db\" npx prisma db push && DATABASE_URL=\"file:./dev.db\" npm run seed && npm run build",
     "start": "cd server && npm start"
   }
 }
