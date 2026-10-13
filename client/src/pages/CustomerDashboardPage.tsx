@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useApp } from "../context/AppContext";
+import { API_BASE_URL } from "../utils/config";
 import { 
   Tractor, 
   Calendar, 
@@ -24,10 +25,10 @@ export const CustomerDashboardPage: React.FC = () => {
       if (!token) return;
       try {
         const [rentalRes, orderRes] = await Promise.all([
-          axios.get("http://localhost:5000/api/customer/rentals", {
+          axios.get(`${API_BASE_URL}/api/customer/rentals`, {
             headers: { Authorization: `Bearer ${token}` }
           }),
-          axios.get("http://localhost:5000/api/customer/orders", {
+          axios.get(`${API_BASE_URL}/api/customer/orders`, {
             headers: { Authorization: `Bearer ${token}` }
           }),
         ]);

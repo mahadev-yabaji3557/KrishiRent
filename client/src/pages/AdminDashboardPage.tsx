@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useApp } from "../context/AppContext";
+import { API_BASE_URL } from "../utils/config";
 import { 
   LayoutDashboard, 
   ShieldCheck, 
@@ -33,7 +34,7 @@ export const AdminDashboardPage: React.FC = () => {
   const fetchAdminData = async () => {
     if (!token) return;
     try {
-      const res = await axios.get("http://localhost:5000/api/admin/overview", {
+      const res = await axios.get(`${API_BASE_URL}/api/admin/overview`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.data.success) {
@@ -64,7 +65,7 @@ export const AdminDashboardPage: React.FC = () => {
     setUpiSaveSuccess(false);
     try {
       const res = await axios.post(
-        "http://localhost:5000/api/admin/upi-config",
+        `${API_BASE_URL}/api/admin/upi-config`,
         { upiId: merchantUpiId.trim(), name: merchantName.trim() },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -96,7 +97,7 @@ export const AdminDashboardPage: React.FC = () => {
     setProcessingOrderId(orderId);
     try {
       const res = await axios.post(
-        `http://localhost:5000/api/admin/orders/${orderId}/verify-payment`,
+        `${API_BASE_URL}/api/admin/orders/${orderId}/verify-payment`,
         { decision, rejectionReason: reason },
         { headers: { Authorization: `Bearer ${token}` } }
       );

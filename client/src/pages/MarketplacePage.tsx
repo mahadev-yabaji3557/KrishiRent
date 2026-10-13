@@ -4,6 +4,7 @@ import axios from "axios";
 import { Product } from "../types";
 import { ProductCard } from "../components/ProductCard";
 import { useApp } from "../context/AppContext";
+import { API_BASE_URL } from "../utils/config";
 import { Filter, SlidersHorizontal, Search, RefreshCw, Sprout, Layers, MapPin } from "lucide-react";
 
 interface MarketplacePageProps {
@@ -50,7 +51,7 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
       if (maxPrice) params.maxPrice = maxPrice;
       if (sortBy === "price_asc" || sortBy === "price_desc") params.sortBy = sortBy;
 
-      const res = await axios.get("http://localhost:5000/api/products", { params });
+      const res = await axios.get(`${API_BASE_URL}/api/products`, { params });
       if (res.data.success) {
         setProducts(res.data.data);
       }
@@ -62,7 +63,7 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
   };
 
   useEffect(() => {
-    axios.get("http://localhost:5000/api/products/categories").then(res => {
+    axios.get(`${API_BASE_URL}/api/products/categories`).then(res => {
       if (res.data.success) {
         if (listingType) {
           setCategories(res.data.data.filter((c: any) => c.type === listingType));

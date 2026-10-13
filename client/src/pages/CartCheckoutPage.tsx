@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import QRCode from "qrcode";
 import { useApp } from "../context/AppContext";
+import { API_BASE_URL } from "../utils/config";
 import { 
   ShoppingCart, 
   Trash2, 
@@ -258,7 +259,7 @@ export const CartCheckoutPage: React.FC = () => {
                   setErrorMessage(null);
                   try {
                     const res = await axios.post(
-                      "http://localhost:5000/api/payments/submit-utr",
+                      `${API_BASE_URL}/api/payments/submit-utr`,
                       {
                         orderId: createdOrder.id,
                         utrNumber: utrNumber.trim(),
@@ -346,7 +347,7 @@ export const CartCheckoutPage: React.FC = () => {
     setErrorMessage(null);
     try {
       const res = await axios.post(
-        "http://localhost:5000/api/payments/create-order",
+        `${API_BASE_URL}/api/payments/create-order`,
         {
           shippingAddress: address,
           notes: "Farmer field delivery instructions",

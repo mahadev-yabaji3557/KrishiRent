@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Product } from "../types";
 import { useApp } from "../context/AppContext";
+import { API_BASE_URL } from "../utils/config";
 import { 
   Tractor, 
   MapPin, 
@@ -40,7 +41,7 @@ export const ProductDetailsPage: React.FC = () => {
   useEffect(() => {
     async function loadProduct() {
       try {
-        const res = await axios.get("http://localhost:5000/api/products/${id}");
+        const res = await axios.get(`${API_BASE_URL}/api/products/${id}`);
         if (res.data.success) {
           setProduct(res.data.data);
           if (res.data.data.images?.length > 0) {
@@ -63,7 +64,7 @@ export const ProductDetailsPage: React.FC = () => {
     }
     setIsCheckingAvailability(true);
     try {
-      const res = await axios.get("http://localhost:5000/api/products/availability", {
+      const res = await axios.get(`${API_BASE_URL}/api/products/availability`, {
         params: {
           productId: id,
           startDate,

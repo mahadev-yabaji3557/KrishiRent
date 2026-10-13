@@ -4,6 +4,7 @@ import axios from "axios";
 import { Product } from "../types";
 import { ProductCard } from "../components/ProductCard";
 import { useApp } from "../context/AppContext";
+import { API_BASE_URL } from "../utils/config";
 import { 
   Tractor, 
   Search, 
@@ -31,9 +32,9 @@ export const HomePage: React.FC = () => {
     async function loadHomeData() {
       try {
         const [rentalRes, supplyRes, catRes] = await Promise.all([
-          axios.get("http://localhost:5000/api/products?type=RENTAL&limit=4"),
-          axios.get("http://localhost:5000/api/products?type=SUPPLY&limit=4"),
-          axios.get("http://localhost:5000/api/products/categories"),
+          axios.get(`${API_BASE_URL}/api/products?type=RENTAL&limit=4`),
+          axios.get(`${API_BASE_URL}/api/products?type=SUPPLY&limit=4`),
+          axios.get(`${API_BASE_URL}/api/products/categories`),
         ]);
         if (rentalRes.data.success) setRentals(rentalRes.data.data);
         if (supplyRes.data.success) setSupplies(supplyRes.data.data);

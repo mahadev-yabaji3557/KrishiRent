@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
 import { User, CartItem, CartSummary } from "../types";
 import { Language, translations } from "../utils/i18n";
+import { API_BASE_URL } from "../utils/config";
 
 interface AppContextType {
   user: User | null;
@@ -51,7 +52,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return;
     }
     try {
-      const res = await axios.get("http://localhost:5000/api/auth/me", {
+      const res = await axios.get(`${API_BASE_URL}/api/auth/me`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.data.success) {
@@ -72,7 +73,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return;
     }
     try {
-      const res = await axios.get("http://localhost:5000/api/cart", {
+      const res = await axios.get(`${API_BASE_URL}/api/cart`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.data.success) {
@@ -90,7 +91,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return false;
     }
     try {
-      const res = await axios.post("http://localhost:5000/api/cart/add", payload, {
+      const res = await axios.post(`${API_BASE_URL}/api/cart/add`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.data.success) {
@@ -107,7 +108,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const removeFromCart = async (itemId: string) => {
     if (!token) return;
     try {
-      await axios.delete("http://localhost:5000/api/cart/item/${itemId}", {
+      await axios.delete(`${API_BASE_URL}/api/cart/item/${itemId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       await fetchCart();
@@ -118,7 +119,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const logout = async () => {
     try {
-      await axios.post("http://localhost:5000/api/auth/logout");
+      await axios.post(`${API_BASE_URL}/api/auth/logout`);
     } catch {}
     setUser(null);
     setToken(null);

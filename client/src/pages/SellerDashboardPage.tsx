@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useApp } from "../context/AppContext";
+import { API_BASE_URL } from "../utils/config";
 import { 
   Store, 
   PlusCircle, 
@@ -35,7 +36,7 @@ export const SellerDashboardPage: React.FC = () => {
   const fetchSellerData = async () => {
     if (!token) return;
     try {
-      const res = await axios.get("http://localhost:5000/api/seller/dashboard", {
+      const res = await axios.get(`${API_BASE_URL}/api/seller/dashboard`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.data.success) {
@@ -62,11 +63,11 @@ export const SellerDashboardPage: React.FC = () => {
     setCreating(true);
     try {
       // Find default category
-      const catRes = await axios.get("http://localhost:5000/api/products/categories");
+      const catRes = await axios.get(`${API_BASE_URL}/api/products/categories`);
       const matchedCat = catRes.data.data.find((c: any) => c.type === type) || catRes.data.data[0];
 
       await axios.post(
-        "http://localhost:5000/api/seller/products",
+        `${API_BASE_URL}/api/seller/products`,
         {
           title,
           titleMr: titleMr || null,

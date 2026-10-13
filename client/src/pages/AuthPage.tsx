@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useApp } from "../context/AppContext";
+import { API_BASE_URL } from "../utils/config";
 import { Tractor, Mail, ShieldCheck, CheckCircle2, Terminal } from "lucide-react";
 
 export const AuthPage: React.FC = () => {
@@ -49,7 +50,7 @@ export const AuthPage: React.FC = () => {
 
     try {
       if (mode === "register") {
-        const res = await axios.post("http://localhost:5000/api/auth/register/init", {
+        const res = await axios.post(`${API_BASE_URL}/api/auth/register/init`, {
           name,
           email,
           phone,
@@ -65,7 +66,7 @@ export const AuthPage: React.FC = () => {
           setCooldown(45);
         }
       } else {
-        const res = await axios.post("http://localhost:5000/api/auth/signin/init", {
+        const res = await axios.post(`${API_BASE_URL}/api/auth/signin/init`, {
           email,
         });
         if (res.data.success) {
@@ -87,13 +88,11 @@ export const AuthPage: React.FC = () => {
     e.preventDefault();
     if (otp.length !== 6) {
       setErrorMessage("Please enter complete 6-digit OTP code.");
-      return;
     }
-
     setLoading(true);
     setErrorMessage(null);
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/verify-otp", {
+      const res = await axios.post(`${API_BASE_URL}/api/auth/verify-otp`, {
         email,
         otp,
         purpose: mode === "register" ? "REGISTRATION" : "SIGNIN",
