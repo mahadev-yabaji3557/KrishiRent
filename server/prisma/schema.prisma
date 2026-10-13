@@ -209,8 +209,16 @@ model Order {
   taxPaise            Int                  @default(0)
   totalPaise          Int
   
-  status              String               @default("PENDING_PAYMENT")
+  status              String               @default("PENDING_PAYMENT") // PENDING_PAYMENT, PAYMENT_SUBMITTED, CONFIRMED, REJECTED, CANCELLED
   notes               String?
+  
+  // Direct UPI Payment Details
+  upiIdUsed           String?              // The merchant UPI ID paid to
+  utrNumber           String?              // Bank 12-digit UTR/RRN submitted by customer
+  payerUpiId          String?              // Payer's VPA if supplied
+  paymentSubmittedAt  DateTime?            // When customer submitted UTR
+  verifiedAt          DateTime?            // When admin confirmed or rejected
+  rejectionReason     String?              // Admin reason if rejected
   
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
@@ -220,6 +228,9 @@ model Order {
   items               OrderItem[]
   rentalBookings      RentalBooking[]
   transactions        PaymentTransaction[]
+
+  @@index([utrNumber])
+  @@index([status])
 }
 
 model OrderItem {
@@ -242,15 +253,15 @@ model OrderItem {
 model PaymentTransaction {
   id                  String         @id @default(uuid())
   orderId             String
-  gateway             String         @default("RAZORPAY")
+  gateway             String         @default("DIRECT_UPI") // DIRECT_UPI, CASHFREE, RAZORPAY
   gatewayOrderId      String         @unique
-  gatewayPaymentId    String?
+  gatewayPaymentId    String?        // UTR number for Direct UPI
   gatewaySignature    String?
-  method              String?
-  vpa                 String?
+  method              String?        // UPI_APP, UPI_QR
+  vpa                 String?        // merchant UPI ID
   amountPaise         Int
   currency            String         @default("INR")
-  status              String         @default("PENDING")
+  status              String         @default("PENDING") // PENDING, SUBMITTED, SUCCESS, FAILED
   rawWebhookPayload   String?
   errorMessage        String?
   createdAt           DateTime       @default(now())
@@ -259,6 +270,14 @@ model PaymentTransaction {
   order               Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@index([gatewayOrderId])
+}
+
+model PlatformSetting {
+  id            String   @id @default(uuid())
+  key           String   @unique
+  value         String
+  description   String?
+  updatedAt     DateTime @updatedAt
 }
 
 model Review {

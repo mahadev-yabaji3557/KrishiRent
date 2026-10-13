@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import axios from "axios";
+import QRCode from "qrcode";
 import { useApp } from "../context/AppContext";
 import { 
   ShoppingCart, 
@@ -10,42 +11,60 @@ import {
   MapPin, 
   ArrowLeft,
   CheckCircle2,
-  Calendar
+  Calendar,
+  Clock,
+  AlertTriangle,
+  QrCode,
+  Smartphone,
+  ExternalLink,
+  Copy,
+  Info
 } from "lucide-react";
-
-declare global {
-  interface Window {
-    Razorpay: any;
-  }
-}
 
 export const CartCheckoutPage: React.FC = () => {
   const { user, token, cartItems, cartSummary, removeFromCart, fetchCart } = useApp();
-  const navigate = useNavigate();
 
   const [address, setAddress] = useState({
     fullName: user?.name || "",
     phone: user?.phone || "",
     street: "Gat No. 102, Farm Road",
-    villageTown: user?.villageOrTown || "Baramati",
+    villageTown: user?.villageOrTown || "Indapur",
     district: user?.district || "Pune",
     state: user?.state || "Maharashtra",
-    pincode: "413102",
+    pincode: "413106",
   });
 
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
-  const [paymentSuccessOrder, setPaymentSuccessOrder] = useState<string | null>(null);
+  // Direct UPI Payment States
+  const [createdOrder, setCreatedOrder] = useState<any>(null);
+  const [directUpiData, setDirectUpiData] = useState<any>(null);
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>("");
+  const [isCreatingOrder, setIsCreatingOrder] = useState(false);
 
-  // Load Razorpay official checkout script
+  // UTR Submission States
+  const [utrNumber, setUtrNumber] = useState("");
+  const [payerUpiId, setPayerUpiId] = useState("");
+  const [isSubmittingUtr, setIsSubmittingUtr] = useState(false);
+  const [utrSubmitted, setUtrSubmitted] = useState(false);
+  const [copiedUpi, setCopiedUpi] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Generate QR Code whenever directUpiData is ready
   useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.async = true;
-    document.body.appendChild(script);
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
+    if (directUpiData?.upiLink) {
+      QRCode.toDataURL(directUpiData.upiLink, {
+        width: 260,
+        margin: 2,
+        color: {
+          dark: "#14532d", // deep krishi green
+          light: "#ffffff",
+        }
+      }).then(url => {
+        setQrCodeDataUrl(url);
+      }).catch(err => {
+        console.error("QR Code generation error", err);
+      });
+    }
+  }, [directUpiData]);
 
   if (!user) {
     return (
@@ -62,30 +81,246 @@ export const CartCheckoutPage: React.FC = () => {
     );
   }
 
-  if (paymentSuccessOrder) {
+  // SCREEN 3: VERIFICATION QUEUE SCREEN (After Customer submits 12-digit UTR)
+  if (utrSubmitted && createdOrder) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-16 text-center space-y-6">
-        <div className="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto">
-          <CheckCircle2 className="w-10 h-10" />
+      <div className="max-w-2xl mx-auto px-4 py-14 text-center space-y-6">
+        <div className="w-16 h-16 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center mx-auto">
+          <Clock className="w-10 h-10 animate-pulse" />
         </div>
-        <h1 className="text-2xl sm:text-3xl font-black text-stone-900">
-          Payment Verified & Order Confirmed!
-        </h1>
-        <p className="text-stone-600 text-sm max-w-md mx-auto">
-          Your payment was cryptographically verified via Razorpay UPI. Order reference: <strong>{paymentSuccessOrder}</strong>. A tax invoice and booking slip have been dispatched to your email.
-        </p>
-        <div className="flex justify-center gap-4 pt-4">
-          <Link to="/dashboard" className="btn-primary text-sm">
-            View My Bookings & Orders
+        
+        <div className="space-y-2">
+          <span className="bg-amber-100 text-amber-900 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+            Verification Pending
+          </span>
+          <h1 className="text-2xl sm:text-3xl font-black text-stone-900">
+            Payment Verification in Progress
+          </h1>
+          <p className="text-stone-600 text-sm max-w-lg mx-auto">
+            Order Reference: <strong>{createdOrder.orderNumber}</strong><br />
+            Submitted UTR / Bank Reference: <strong className="font-mono text-emerald-800">{utrNumber}</strong>
+          </p>
+        </div>
+
+        <div className="bg-stone-50 border border-stone-200 rounded-2xl p-6 text-left text-xs space-y-3 max-w-lg mx-auto">
+          <div className="flex items-start gap-2.5">
+            <ShieldCheck className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
+            <p className="text-stone-700">
+              <strong>Merchant Bank Verification Rule:</strong> For farmer security and zero-fraud guarantee, your order is not marked as paid based on screenshots alone. Our Krishi admin is verifying the actual credit in the merchant bank account.
+            </p>
+          </div>
+          <div className="flex items-start gap-2.5">
+            <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+            <p className="text-stone-600">
+              Confirmation usually completes within <strong>10–30 minutes</strong>. Once confirmed, you will receive a verified tax invoice and machinery dispatch schedule on your email.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex justify-center gap-4 pt-2">
+          <Link to="/dashboard" className="btn-primary text-sm px-6">
+            View Order Status in Dashboard
           </Link>
-          <Link to="/" className="btn-outline text-sm">
-            Return to Home
+          <Link to="/" className="btn-outline text-sm px-6">
+            Continue Browsing
           </Link>
         </div>
       </div>
     );
   }
 
+  // SCREEN 2: DYNAMIC AMOUNT-SPECIFIC UPI PAYMENT SCREEN
+  if (createdOrder && directUpiData) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-8 space-y-8">
+        <div>
+          <button
+            onClick={() => setCreatedOrder(null)}
+            className="text-xs text-stone-500 hover:text-emerald-700 flex items-center gap-1 mb-2"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            Change Address or Items
+          </button>
+          <h1 className="text-2xl sm:text-3xl font-black text-stone-900">
+            Direct Zero-Fee UPI Payment
+          </h1>
+          <p className="text-xs text-stone-500 mt-1">
+            Order Reference: <strong>{createdOrder.orderNumber}</strong> • Exact Payable Amount: <strong>₹{directUpiData.amountRupees}</strong>
+          </p>
+        </div>
+
+        {errorMessage && (
+          <div className="bg-red-50 border border-red-200 text-red-800 p-3 rounded-xl text-xs flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-red-600 shrink-0" />
+            <span>{errorMessage}</span>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+          {/* Method 1: Scan Dynamic Amount-Specific QR */}
+          <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm text-center space-y-4">
+            <div className="flex items-center justify-center gap-2 text-xs font-bold text-stone-800">
+              <QrCode className="w-4 h-4 text-emerald-700" />
+              <span>Scan with Any UPI App</span>
+            </div>
+
+            <div className="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 inline-block">
+              {qrCodeDataUrl ? (
+                <img
+                  src={qrCodeDataUrl}
+                  alt="Dynamic UPI QR"
+                  className="w-56 h-56 mx-auto rounded-lg shadow-xs"
+                />
+              ) : (
+                <div className="w-56 h-56 flex items-center justify-center text-xs text-stone-400">
+                  Generating QR...
+                </div>
+              )}
+            </div>
+
+            <div className="text-xs text-stone-600 space-y-1">
+              <div className="font-extrabold text-stone-900 text-lg">
+                ₹{directUpiData.amountRupees}
+              </div>
+              <p className="text-[11px] text-stone-500">
+                Amount and Order ID are pre-encoded in this QR. No manual amount entry needed.
+              </p>
+            </div>
+
+            <div className="pt-2 border-t border-stone-100 flex items-center justify-between text-xs">
+              <span className="text-stone-500">Merchant VPA:</span>
+              <div className="flex items-center gap-1 font-mono font-bold text-stone-800">
+                <span>{directUpiData.merchantUpiId}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(directUpiData.merchantUpiId);
+                    setCopiedUpi(true);
+                    setTimeout(() => setCopiedUpi(false), 2000);
+                  }}
+                  className="text-emerald-700 hover:text-emerald-800 p-0.5"
+                  title="Copy UPI ID"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+            {copiedUpi && <span className="text-[10px] text-emerald-700 font-bold">Copied to clipboard!</span>}
+          </div>
+
+          {/* Method 2: Mobile Direct UPI Apps Link & Submit UTR */}
+          <div className="space-y-6">
+            {/* Pay Now Direct App Link */}
+            <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm space-y-4">
+              <div className="flex items-center gap-2 text-xs font-bold text-stone-800">
+                <Smartphone className="w-4 h-4 text-emerald-700" />
+                <span>Pay directly on your phone</span>
+              </div>
+              <p className="text-xs text-stone-600">
+                If browsing on mobile, tap below to open Google Pay, PhonePe, Paytm, or BHIM directly:
+              </p>
+
+              <a
+                href={directUpiData.upiLink}
+                className="btn-primary w-full py-3.5 text-sm font-bold shadow-md justify-center flex items-center gap-2"
+              >
+                <span>Pay ₹{directUpiData.amountRupees} via UPI App</span>
+                <ExternalLink className="w-4 h-4" />
+              </a>
+
+              <div className="flex justify-center gap-3 text-[10px] font-bold text-stone-600 pt-1">
+                <span className="bg-stone-100 px-2.5 py-1 rounded">PhonePe</span>
+                <span className="bg-stone-100 px-2.5 py-1 rounded">GPay</span>
+                <span className="bg-stone-100 px-2.5 py-1 rounded">Paytm</span>
+                <span className="bg-stone-100 px-2.5 py-1 rounded">BHIM</span>
+              </div>
+            </div>
+
+            {/* Step 2: Submit UTR Reference Number */}
+            <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm space-y-4">
+              <div>
+                <h3 className="font-bold text-stone-900 text-sm">
+                  Step 2: Submit 12-Digit Bank UTR / RRN
+                </h3>
+                <p className="text-[11px] text-stone-500 mt-0.5">
+                  After completing payment in your UPI app, enter the 12-digit UTR/Txn number shown on your payment receipt:
+                </p>
+              </div>
+
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  if (!utrNumber || utrNumber.trim().length < 6) {
+                    setErrorMessage("Please enter valid 12-digit UTR / Reference number.");
+                    return;
+                  }
+                  setIsSubmittingUtr(true);
+                  setErrorMessage(null);
+                  try {
+                    const res = await axios.post(
+                      "http://localhost:5000/api/payments/submit-utr",
+                      {
+                        orderId: createdOrder.id,
+                        utrNumber: utrNumber.trim(),
+                        payerUpiId: payerUpiId.trim() || undefined,
+                      },
+                      { headers: { Authorization: `Bearer ${token}` } }
+                    );
+                    if (res.data.success) {
+                      setUtrSubmitted(true);
+                      await fetchCart();
+                    }
+                  } catch (err: any) {
+                    setErrorMessage(err.response?.data?.message || "Failed to submit UTR number.");
+                  } finally {
+                    setIsSubmittingUtr(false);
+                  }
+                }}
+                className="space-y-3 text-xs"
+              >
+                <div>
+                  <label className="block text-stone-700 font-semibold mb-1">
+                    Bank UTR / UPI Reference No. (12 Digits) *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={utrNumber}
+                    onChange={(e) => setUtrNumber(e.target.value.replace(/[^0-9a-zA-Z]/g, ""))}
+                    placeholder="e.g. 428901234567"
+                    className="w-full p-2.5 border border-stone-300 rounded-lg bg-stone-50 font-mono text-sm uppercase tracking-wider"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-stone-700 font-semibold mb-1">
+                    Your UPI ID / Payer VPA (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={payerUpiId}
+                    onChange={(e) => setPayerUpiId(e.target.value)}
+                    placeholder="e.g. farmer@oksbi"
+                    className="w-full p-2.5 border border-stone-300 rounded-lg bg-stone-50"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSubmittingUtr || utrNumber.length < 6}
+                  className="w-full btn-secondary py-3 text-sm font-bold shadow-md justify-center"
+                >
+                  {isSubmittingUtr ? "Submitting for Verification..." : "Submit UTR for Verification"}
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // SCREEN 1: CART REVIEW & ADDRESS ENTRY
   if (cartItems.length === 0) {
     return (
       <div className="max-w-xl mx-auto px-4 py-16 text-center space-y-4">
@@ -101,117 +336,32 @@ export const CartCheckoutPage: React.FC = () => {
     );
   }
 
-  // 1. Order Creation & Razorpay UPI launch flow
-  const handleProceedToPayment = async () => {
+  const handleCreateOrder = async () => {
     if (!address.fullName || !address.phone || !address.street || !address.villageTown) {
       alert("Please fill in complete delivery & contact details.");
       return;
     }
 
-    setIsProcessingPayment(true);
+    setIsCreatingOrder(true);
+    setErrorMessage(null);
     try {
-      // Step A: Backend creates verified order & Razorpay order
       const res = await axios.post(
         "http://localhost:5000/api/payments/create-order",
         {
           shippingAddress: address,
           notes: "Farmer field delivery instructions",
         },
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      if (!res.data.success) {
-        alert(res.data.message || "Failed to create order");
-        setIsProcessingPayment(false);
-        return;
-      }
-
-      const { razorpay, order } = res.data;
-
-      // Step B: Configure official Razorpay checkout options
-      const options = {
-        key: razorpay.key,
-        amount: razorpay.amount,
-        currency: razorpay.currency,
-        name: razorpay.name,
-        description: razorpay.description,
-        order_id: razorpay.orderId,
-        prefill: {
-          name: user.name,
-          email: user.email,
-          contact: user.phone,
-        },
-        notes: {
-          orderNumber: order.orderNumber,
-        },
-        theme: {
-          color: "#15803d", // Krishi Emerald Green
-        },
-        handler: async function (response: any) {
-          // Step C: Server-side cryptographic HMAC-SHA256 signature verification
-          try {
-            const verifyRes = await axios.post(
-              "http://localhost:5000/api/payments/verify-payment",
-              {
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-              },
-              {
-                headers: { Authorization: `Bearer ${token}` }
-              }
-            );
-
-            if (verifyRes.data.success) {
-              setPaymentSuccessOrder(verifyRes.data.orderNumber || order.orderNumber);
-              await fetchCart();
-            } else {
-              alert("Payment verification failed on server: " + verifyRes.data.message);
-            }
-          } catch (verErr: any) {
-            console.error("Verification error", verErr);
-            alert("Payment signature verification failed: " + (verErr.response?.data?.message || verErr.message));
-          } finally {
-            setIsProcessingPayment(false);
-          }
-        },
-        modal: {
-          ondismiss: function () {
-            setIsProcessingPayment(false);
-            console.log("Customer closed the Razorpay UPI checkout modal.");
-          }
-        }
-      };
-
-      if (window.Razorpay) {
-        const rzp = new window.Razorpay(options);
-        rzp.open();
-      } else {
-        // Fallback test verification if script blocked by local ad-blocker
-        console.warn("Razorpay script not yet loaded, running test verification...");
-        const verifyRes = await axios.post(
-          "http://localhost:5000/api/payments/verify-payment",
-          {
-            razorpay_order_id: razorpay.orderId,
-            razorpay_payment_id: "pay_test_simulated_upi_123",
-            razorpay_signature: "mock_verified_signature",
-          },
-          {
-            headers: { Authorization: `Bearer ${token}` }
-          }
-        );
-        if (verifyRes.data.success) {
-          setPaymentSuccessOrder(order.orderNumber);
-          await fetchCart();
-        }
-        setIsProcessingPayment(false);
+      if (res.data.success) {
+        setCreatedOrder(res.data.order);
+        setDirectUpiData(res.data.directUpi);
       }
     } catch (err: any) {
-      console.error(err);
-      alert(err.response?.data?.message || "Failed to start payment checkout");
-      setIsProcessingPayment(false);
+      alert(err.response?.data?.message || "Failed to initialize order");
+    } finally {
+      setIsCreatingOrder(false);
     }
   };
 
@@ -228,9 +378,8 @@ export const CartCheckoutPage: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-        {/* Left: Cart Items & Delivery Address Form */}
+        {/* Left: Cart Items & Delivery Address */}
         <div className="lg:col-span-7 space-y-6">
-          {/* Cart Items List */}
           <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm space-y-4">
             <h3 className="font-bold text-stone-900 text-base">Selected Items ({cartItems.length})</h3>
             <div className="divide-y divide-stone-100">
@@ -244,7 +393,7 @@ export const CartCheckoutPage: React.FC = () => {
                   <div className="flex-1">
                     <h4 className="font-bold text-stone-900 text-sm leading-snug">{item.product.title}</h4>
                     <p className="text-xs text-stone-500 mt-0.5">
-                      Merchant: {item.product.seller?.businessName} ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ {item.product.villageTown}
+                      Merchant: {item.product.seller?.businessName} • {item.product.villageTown}
                     </p>
 
                     {item.isRental ? (
@@ -259,14 +408,13 @@ export const CartCheckoutPage: React.FC = () => {
                     )}
 
                     <div className="mt-2 font-bold text-stone-900 text-sm">
-                      ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¹{(item.calculatedTotalPaise / 100).toLocaleString("en-IN")}
+                      ₹{(item.calculatedTotalPaise / 100).toLocaleString("en-IN")}
                     </div>
                   </div>
 
                   <button
                     onClick={() => removeFromCart(item.id)}
                     className="text-stone-400 hover:text-red-600 p-1 transition"
-                    title="Remove item"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -275,7 +423,7 @@ export const CartCheckoutPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Delivery & Field Contact Address */}
+          {/* Delivery Address */}
           <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm space-y-4">
             <div className="flex items-center gap-2 font-bold text-stone-900 text-base">
               <MapPin className="w-4 h-4 text-emerald-700" />
@@ -294,7 +442,7 @@ export const CartCheckoutPage: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-stone-600 mb-1 font-medium">Mobile Number (for Driver/Delivery)</label>
+                <label className="block text-stone-600 mb-1 font-medium">Mobile Number</label>
                 <input
                   type="text"
                   value={address.phone}
@@ -304,13 +452,12 @@ export const CartCheckoutPage: React.FC = () => {
                 />
               </div>
               <div className="sm:col-span-2">
-                <label className="block text-stone-600 mb-1 font-medium">Gat / Survey No. & Road Name</label>
+                <label className="block text-stone-600 mb-1 font-medium">Farm Gat / Survey No. & Road</label>
                 <input
                   type="text"
                   value={address.street}
                   onChange={(e) => setAddress({ ...address, street: e.target.value })}
                   className="w-full p-2.5 border border-stone-300 rounded-lg bg-stone-50"
-                  placeholder="e.g. Gat No. 142, Indapur-Akluj Road"
                 />
               </div>
               <div>
@@ -331,94 +478,68 @@ export const CartCheckoutPage: React.FC = () => {
                   className="w-full p-2.5 border border-stone-300 rounded-lg bg-stone-50"
                 />
               </div>
-              <div>
-                <label className="block text-stone-600 mb-1 font-medium">State</label>
-                <input
-                  type="text"
-                  value={address.state}
-                  onChange={(e) => setAddress({ ...address, state: e.target.value })}
-                  className="w-full p-2.5 border border-stone-300 rounded-lg bg-stone-50"
-                />
-              </div>
-              <div>
-                <label className="block text-stone-600 mb-1 font-medium">PIN Code</label>
-                <input
-                  type="text"
-                  value={address.pincode}
-                  onChange={(e) => setAddress({ ...address, pincode: e.target.value })}
-                  className="w-full p-2.5 border border-stone-300 rounded-lg bg-stone-50"
-                />
-              </div>
             </div>
           </div>
         </div>
 
-        {/* Right: Price Breakdown & UPI Gateway Box */}
+        {/* Right: Payment Summary & Proceed */}
         <div className="lg:col-span-5 space-y-6">
           <div className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm space-y-6">
-            <h3 className="font-bold text-stone-900 text-base">Payment Summary</h3>
+            <h3 className="font-bold text-stone-900 text-base">Direct UPI Payment</h3>
 
             {cartSummary && (
               <div className="space-y-3 text-xs text-stone-600">
                 <div className="flex justify-between">
                   <span>Subtotal ({cartSummary.itemCount} items):</span>
                   <span className="font-semibold text-stone-900">
-                    ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¹{(cartSummary.subtotalPaise / 100).toLocaleString("en-IN")}
+                    ₹{(cartSummary.subtotalPaise / 100).toLocaleString("en-IN")}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Machinery Delivery & Logistics:</span>
+                  <span>Machinery Logistics / Delivery:</span>
                   <span className="font-semibold text-stone-900">
                     {cartSummary.deliveryFeePaise > 0 
-                      ? `ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¹${(cartSummary.deliveryFeePaise / 100).toLocaleString("en-IN")}` 
+                      ? `₹${(cartSummary.deliveryFeePaise / 100).toLocaleString("en-IN")}` 
                       : "Free Delivery"}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Agricultural GST (5%):</span>
                   <span className="font-semibold text-stone-900">
-                    ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¹{(cartSummary.taxPaise / 100).toLocaleString("en-IN")}
+                    ₹{(cartSummary.taxPaise / 100).toLocaleString("en-IN")}
                   </span>
                 </div>
 
                 <div className="pt-3 border-t border-stone-200 flex justify-between items-baseline">
                   <span className="text-sm font-bold text-stone-900">Total Payable:</span>
                   <span className="text-2xl font-black text-emerald-800">
-                    ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¹{(cartSummary.totalPaise / 100).toLocaleString("en-IN")}
+                    ₹{(cartSummary.totalPaise / 100).toLocaleString("en-IN")}
                   </span>
                 </div>
               </div>
             )}
 
-            {/* UPI Gateway Trust Badges */}
-            <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-xl space-y-3">
-              <div className="flex items-center gap-2 text-xs font-bold text-emerald-900">
+            <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-xl space-y-2 text-xs">
+              <div className="flex items-center gap-2 font-bold text-emerald-950">
                 <CreditCard className="w-4 h-4 text-emerald-700" />
-                <span>Real UPI Payment Gateway (Razorpay)</span>
+                <span>Zero Commission Direct UPI</span>
               </div>
-              <p className="text-[11px] text-emerald-800 leading-relaxed">
-                Pay using <strong>Google Pay, PhonePe, Paytm, BHIM</strong>, or Any UPI App / QR code. Instant server-side HMAC validation ensures zero payment tampering.
+              <p className="text-emerald-800 text-[11px] leading-relaxed">
+                Pay using <strong>PhonePe, Google Pay, Paytm, BHIM</strong> or any UPI app with dynamic QR code & direct UTR verification.
               </p>
-              <div className="flex flex-wrap gap-2 text-[10px] font-bold text-stone-700">
-                <span className="bg-white px-2 py-1 rounded shadow-xs border border-emerald-200">GPay</span>
-                <span className="bg-white px-2 py-1 rounded shadow-xs border border-emerald-200">PhonePe</span>
-                <span className="bg-white px-2 py-1 rounded shadow-xs border border-emerald-200">Paytm UPI</span>
-                <span className="bg-white px-2 py-1 rounded shadow-xs border border-emerald-200">UPI QR Code</span>
-              </div>
             </div>
 
-            {/* Proceed Button */}
             <button
-              onClick={handleProceedToPayment}
-              disabled={isProcessingPayment}
+              onClick={handleCreateOrder}
+              disabled={isCreatingOrder}
               className="w-full btn-primary py-3.5 text-base font-bold shadow-lg"
             >
-              {isProcessingPayment ? "Verifying with Gateway..." : "Pay via UPI Apps"}
+              {isCreatingOrder ? "Preparing Payment..." : "Proceed to Direct UPI Payment"}
             </button>
 
             <div className="flex items-center justify-center gap-1 text-[11px] text-stone-500">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-              <span>256-Bit SSL Encrypted & RBI Gateway Compliant</span>
+              <span>100% Free Peer-to-Merchant Payment • Verified Bank Credit</span>
             </div>
           </div>
         </div>

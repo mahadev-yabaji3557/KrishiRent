@@ -6,7 +6,13 @@ import {
   getCategories 
 } from "../controllers/productController";
 import { getCart, addToCart, removeCartItem, clearCart } from "../controllers/cartController";
-import { createCheckoutOrder, verifyPayment, handleRazorpayWebhook } from "../controllers/paymentController";
+import { 
+  getMerchantUpiConfig, 
+  createDirectUpiOrder, 
+  submitPaymentUtr, 
+  verifyOrderPaymentByAdmin, 
+  updateMerchantUpiConfig 
+} from "../controllers/directUpiController";
 import { 
   getCustomerOrders, 
   getCustomerRentals, 
@@ -31,9 +37,9 @@ cartRouter.delete("/item/:id", removeCartItem);
 cartRouter.delete("/clear", clearCart);
 
 export const paymentRouter = Router();
-paymentRouter.post("/create-order", requireAuth, createCheckoutOrder);
-paymentRouter.post("/verify-payment", requireAuth, verifyPayment);
-paymentRouter.post("/webhook", handleRazorpayWebhook);
+paymentRouter.get("/config", getMerchantUpiConfig);
+paymentRouter.post("/create-order", requireAuth, createDirectUpiOrder);
+paymentRouter.post("/submit-utr", requireAuth, submitPaymentUtr);
 
 export const customerRouter = Router();
 customerRouter.use(requireAuth);
@@ -51,3 +57,6 @@ adminRouter.use(requireAuth);
 adminRouter.use(requireRole(["ADMIN"]));
 adminRouter.get("/overview", getAdminOverview);
 adminRouter.patch("/sellers/:sellerId/verify", approveSeller);
+adminRouter.get("/upi-config", getMerchantUpiConfig);
+adminRouter.post("/upi-config", updateMerchantUpiConfig);
+adminRouter.post("/orders/:orderId/verify-payment", verifyOrderPaymentByAdmin);

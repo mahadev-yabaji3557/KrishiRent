@@ -1,7 +1,7 @@
 import { Response } from "express";
 import { prisma } from "../prisma";
 import { AuthRequest } from "../middleware/auth";
-import { z } from "zod";
+import { getActiveMerchantUpi } from "./directUpiController";
 
 // --- CUSTOMER / FARMER APIS ---
 export async function getCustomerOrders(req: AuthRequest, res: Response): Promise<void> {
@@ -80,7 +80,6 @@ export async function getSellerDashboard(req: AuthRequest, res: Response): Promi
       return;
     }
 
-    // Fetch incoming rental bookings for seller's products
     const productIds = seller.products.map(p => p.id);
     const rentalBookings = await prisma.rentalBooking.findMany({
       where: { productId: { in: productIds } },
@@ -91,7 +90,6 @@ export async function getSellerDashboard(req: AuthRequest, res: Response): Promi
       orderBy: { startDate: "desc" }
     });
 
-    // Fetch orders containing seller's items
     const orderItems = await prisma.orderItem.findMany({
       where: { sellerId: seller.id },
       include: {
@@ -101,7 +99,6 @@ export async function getSellerDashboard(req: AuthRequest, res: Response): Promi
       orderBy: { order: { createdAt: "desc" } }
     });
 
-    // Calculate metrics
     const totalEarningsPaise = orderItems.reduce((acc, curr) => acc + curr.totalPaise, 0);
 
     res.json({
@@ -159,6 +156,9 @@ export async function createOrUpdateSellerProduct(req: AuthRequest, res: Respons
       cibRegistrationNo,
       activeIngredients,
       dosageRecommendation,
+      targetCrops,
+      suitableSoil,
+      maharashtraRegion,
     } = req.body;
 
     const product = await prisma.product.create({
@@ -171,6 +171,9 @@ export async function createOrUpdateSellerProduct(req: AuthRequest, res: Respons
         descriptionMr: descriptionMr || null,
         type,
         subCategory: subCategory || null,
+        targetCrops: targetCrops || null,
+        suitableSoil: suitableSoil || null,
+        maharashtraRegion: maharashtraRegion || "Western Maharashtra",
         pricePaise: Number(pricePaise),
         hourlyRatePaise: hourlyRatePaise ? Number(hourlyRatePaise) : null,
         perAcreRatePaise: perAcreRatePaise ? Number(perAcreRatePaise) : null,
@@ -210,6 +213,8 @@ export async function getAdminOverview(req: AuthRequest, res: Response): Promise
       sellersCount,
       productsCount,
       ordersCount,
+      pendingVerificationOrders,
+      allOrders,
       transactions,
       recentUsers,
       pendingSellers,
@@ -219,6 +224,22 @@ export async function getAdminOverview(req: AuthRequest, res: Response): Promise
       prisma.sellerProfile.count(),
       prisma.product.count(),
       prisma.order.count(),
+      prisma.order.findMany({
+        where: { status: "PAYMENT_SUBMITTED" },
+        include: {
+          user: { select: { name: true, email: true, phone: true } },
+          items: { include: { product: true } }
+        },
+        orderBy: { paymentSubmittedAt: "desc" }
+      }),
+      prisma.order.findMany({
+        take: 15,
+        orderBy: { createdAt: "desc" },
+        include: {
+          user: { select: { name: true, phone: true } },
+          items: { include: { product: true } }
+        }
+      }),
       prisma.paymentTransaction.findMany({
         where: { status: "SUCCESS" },
         select: { amountPaise: true }
@@ -236,6 +257,7 @@ export async function getAdminOverview(req: AuthRequest, res: Response): Promise
     ]);
 
     const totalRevenuePaise = transactions.reduce((acc, t) => acc + t.amountPaise, 0);
+    const activeMerchantUpi = await getActiveMerchantUpi();
 
     res.json({
       success: true,
@@ -245,7 +267,11 @@ export async function getAdminOverview(req: AuthRequest, res: Response): Promise
         productsCount,
         ordersCount,
         revenuePaise: totalRevenuePaise,
+        pendingUtrCount: pendingVerificationOrders.length,
       },
+      activeMerchantUpi,
+      pendingVerificationOrders,
+      recentOrders: allOrders,
       recentUsers,
       pendingSellers,
       auditLogs,
