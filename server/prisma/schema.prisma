@@ -1,0 +1,277 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id              String           @id @default(uuid())
+  email           String           @unique
+  name            String
+  phone           String
+  role            String           @default("FARMER") // FARMER, SELLER, ADMIN
+  villageOrTown   String?
+  district        String?
+  state           String?
+  isEmailVerified Boolean          @default(false)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  sellerProfile   SellerProfile?
+  addresses       Address[]
+  rentalBookings  RentalBooking[]
+  orders          Order[]
+  cartItems       CartItem[]
+  auditLogs       AuditLog[]
+  reviews         Review[]
+}
+
+model OtpChallenge {
+  id          String   @id @default(uuid())
+  email       String
+  otpHash     String
+  purpose     String   // REGISTRATION, SIGNIN
+  attempts    Int      @default(0)
+  maxAttempts Int      @default(5)
+  expiresAt   DateTime
+  consumedAt  DateTime?
+  createdAt   DateTime @default(now())
+
+  @@index([email])
+}
+
+model Address {
+  id          String   @id @default(uuid())
+  userId      String
+  fullName    String
+  phone       String
+  street      String
+  villageTown String
+  district    String
+  state       String
+  pincode     String
+  isDefault   Boolean  @default(false)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders      Order[]
+}
+
+model SellerProfile {
+  id                  String    @id @default(uuid())
+  userId              String    @unique
+  businessName        String
+  farmOrShopAddress   String
+  district            String
+  state               String
+  pincode             String
+  gstinOrAadhaar      String?
+  pesticideLicenseNo  String?
+  fertilizerLicenseNo String?
+  isVerified          Boolean   @default(false)
+  verificationNotes   String?
+  payoutUpiId         String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  products            Product[]
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  nameMr      String
+  slug        String    @unique
+  icon        String?
+  description String?
+  type        String    // RENTAL, SALE, SUPPLY
+  products    Product[]
+}
+
+model Product {
+  id                   String           @id @default(uuid())
+  sellerId             String
+  categoryId           String
+  title                String
+  titleMr              String?
+  description          String
+  descriptionMr        String?
+  type                 String           // RENTAL, SALE, SUPPLY
+  subCategory          String?
+  
+  pricePaise           Int
+  hourlyRatePaise      Int?
+  perAcreRatePaise     Int?
+  securityDepositPaise Int?
+  
+  stock                Int              @default(1)
+  condition            String?          // NEW, USED_EXCELLENT, USED_GOOD
+  modelYear            Int?
+  horsepower           Int?
+  
+  safetyWarning        String?
+  toxicityColor        String?          // Red, Yellow, Blue, Green
+  cibRegistrationNo    String?
+  activeIngredients    String?
+  dosageRecommendation String?
+  
+  villageTown          String
+  district             String
+  state                String
+  deliveryAvailable    Boolean          @default(true)
+  deliveryFeePaise     Int              @default(0)
+  
+  imagesJson           String
+  specificationsJson   String?
+  
+  isApproved           Boolean          @default(true)
+  isActive             Boolean          @default(true)
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+
+  seller               SellerProfile    @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  category             Category         @relation(fields: [categoryId], references: [id])
+  rentalBookings       RentalBooking[]
+  orderItems           OrderItem[]
+  cartItems            CartItem[]
+  reviews              Review[]
+
+  @@index([type])
+  @@index([district])
+}
+
+model RentalBooking {
+  id                  String         @id @default(uuid())
+  userId              String
+  productId           String
+  orderId             String?
+  
+  startDate           DateTime
+  endDate             DateTime
+  rateUnit            String         @default("DAY") // HOUR, DAY, ACRE
+  unitsBooked         Int            @default(1)
+  
+  rentalFeePaise      Int
+  depositPaise        Int            @default(0)
+  totalPaise          Int
+  status              String         @default("CONFIRMED") // PENDING, CONFIRMED, ACTIVE, RETURNED, CANCELLED
+  
+  pickupOption        String         @default("DELIVERY") // PICKUP, DELIVERY
+  deliveryAddress     String?
+  
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  user                User           @relation(fields: [userId], references: [id])
+  product             Product        @relation(fields: [productId], references: [id])
+  order               Order?         @relation(fields: [orderId], references: [id])
+
+  @@index([productId, startDate, endDate])
+}
+
+model CartItem {
+  id                  String    @id @default(uuid())
+  userId              String
+  productId           String
+  quantity            Int       @default(1)
+  isRental            Boolean   @default(false)
+  rentalStartDate     DateTime?
+  rentalEndDate       DateTime?
+  rentalRateUnit      String?
+  rentalUnits         Int?
+  createdAt           DateTime  @default(now())
+
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product             Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId, isRental, rentalStartDate, rentalEndDate])
+}
+
+model Order {
+  id                  String               @id @default(uuid())
+  orderNumber         String               @unique
+  userId              String
+  addressId           String?
+  
+  subtotalPaise       Int
+  deliveryFeePaise    Int                  @default(0)
+  taxPaise            Int                  @default(0)
+  totalPaise          Int
+  
+  status              String               @default("PENDING_PAYMENT")
+  notes               String?
+  
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+
+  user                User                 @relation(fields: [userId], references: [id])
+  address             Address?             @relation(fields: [addressId], references: [id])
+  items               OrderItem[]
+  rentalBookings      RentalBooking[]
+  transactions        PaymentTransaction[]
+}
+
+model OrderItem {
+  id                  String   @id @default(uuid())
+  orderId             String
+  productId           String
+  sellerId            String
+  quantity            Int      @default(1)
+  unitPricePaise      Int
+  totalPaise          Int
+  itemType            String
+  rentalDaysOrHours   Int?
+  
+  order               Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product             Product  @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+}
+
+model PaymentTransaction {
+  id                  String         @id @default(uuid())
+  orderId             String
+  gateway             String         @default("RAZORPAY")
+  gatewayOrderId      String         @unique
+  gatewayPaymentId    String?
+  gatewaySignature    String?
+  method              String?
+  vpa                 String?
+  amountPaise         Int
+  currency            String         @default("INR")
+  status              String         @default("PENDING")
+  rawWebhookPayload   String?
+  errorMessage        String?
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  order               Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([gatewayOrderId])
+}
+
+model Review {
+  id          String   @id @default(uuid())
+  userId      String
+  productId   String
+  rating      Int      @default(5)
+  comment     String?
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  userId      String?
+  action      String
+  resource    String?
+  detailsJson String?
+  ipAddress   String?
+  createdAt   DateTime @default(now())
+
+  user        User?    @relation(fields: [userId], references: [id])
+}
