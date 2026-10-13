@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Product } from "../types";
-import { MapPin, ShieldCheck, Star, Calendar, AlertTriangle } from "lucide-react";
+import { MapPin, ShieldCheck, Star, Calendar, Sprout, Layers } from "lucide-react";
 import { useApp } from "../context/AppContext";
 
 interface ProductCardProps {
@@ -42,7 +42,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         />
         
         {/* Type Badge */}
-        <div className="absolute top-2.5 left-2.5">
+        <div className="absolute top-2.5 left-2.5 flex flex-col gap-1">
           {product.type === "RENTAL" ? (
             <span className="bg-emerald-700 text-white font-semibold text-xs px-2.5 py-1 rounded-md shadow-sm flex items-center gap-1">
               <Calendar className="w-3 h-3" />
@@ -55,6 +55,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           ) : (
             <span className="bg-blue-700 text-white font-semibold text-xs px-2.5 py-1 rounded-md shadow-sm">
               Agri Supplies
+            </span>
+          )}
+
+          {product.maharashtraRegion && (
+            <span className="bg-stone-900/80 backdrop-blur-xs text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded shadow-xs">
+              {product.maharashtraRegion.split(" ")[0]} Region
             </span>
           )}
         </div>
@@ -78,17 +84,33 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           {product.seller?.isVerified && (
             <span className="flex items-center gap-1 text-emerald-700 font-medium">
               <ShieldCheck className="w-3.5 h-3.5" />
-              Verified
+              Verified Merchant
             </span>
           )}
         </div>
 
         {/* Title */}
         <Link to={`/product/${product.id}`} className="group-hover:text-emerald-700 transition">
-          <h3 className="font-bold text-stone-900 line-clamp-2 text-base leading-snug mb-2">
+          <h3 className="font-bold text-stone-900 line-clamp-2 text-base leading-snug mb-1.5">
             {title}
           </h3>
         </Link>
+
+        {/* Crop Suitability Badge */}
+        {product.targetCrops && (
+          <div className="text-[11px] text-emerald-800 bg-emerald-50 px-2 py-1 rounded-md mb-2 flex items-center gap-1.5">
+            <Sprout className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+            <span className="truncate"><strong>Crops:</strong> {product.targetCrops}</span>
+          </div>
+        )}
+
+        {/* Soil Compatibility Badge */}
+        {product.suitableSoil && (
+          <div className="text-[11px] text-stone-600 mb-2 flex items-center gap-1.5">
+            <Layers className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+            <span className="truncate"><strong>Soil:</strong> {product.suitableSoil}</span>
+          </div>
+        )}
 
         {/* Safety Warning Tag if Pesticide */}
         {product.toxicityColor && (
@@ -97,25 +119,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           </div>
         )}
 
-        {/* Specs snippet if available */}
-        {product.horsepower && (
-          <p className="text-xs text-stone-600 mb-2">
-            Engine Power: <strong className="text-stone-800">{product.horsepower} HP</strong> ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ Model Year: {product.modelYear || 2023}
-          </p>
-        )}
-
         {/* Price & Action */}
         <div className="mt-auto pt-3 border-t border-stone-100 flex items-center justify-between">
           <div>
             <div className="text-lg font-extrabold text-stone-900">
-              ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¹{priceFormatted}
+              ₹{priceFormatted}
               <span className="text-xs font-normal text-stone-500 ml-1">
                 {product.type === "RENTAL" ? `/${t.perDay}` : ""}
               </span>
             </div>
             {product.type === "RENTAL" && product.hourlyRatePaise && (
               <div className="text-[11px] text-stone-500">
-                or ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¹{product.hourlyRatePaise / 100}/{t.perHour}
+                or ₹{product.hourlyRatePaise / 100}/{t.perHour}
               </div>
             )}
           </div>

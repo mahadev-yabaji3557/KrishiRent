@@ -1,7 +1,5 @@
 import { Request, Response } from "express";
 import { prisma } from "../prisma";
-import { AuthRequest } from "../middleware/auth";
-import { z } from "zod";
 
 export async function getProducts(req: Request, res: Response): Promise<void> {
   try {
@@ -10,11 +8,14 @@ export async function getProducts(req: Request, res: Response): Promise<void> {
       category, 
       search, 
       district, 
+      crop,
+      soil,
+      region,
       minPrice, 
       maxPrice, 
       sortBy,
       page = "1",
-      limit = "20"
+      limit = "30"
     } = req.query;
 
     const where: any = {
@@ -36,6 +37,18 @@ export async function getProducts(req: Request, res: Response): Promise<void> {
       where.district = { contains: district };
     }
 
+    if (crop && typeof crop === "string") {
+      where.targetCrops = { contains: crop };
+    }
+
+    if (soil && typeof soil === "string") {
+      where.suitableSoil = { contains: soil };
+    }
+
+    if (region && typeof region === "string") {
+      where.maharashtraRegion = { contains: region };
+    }
+
     if (minPrice || maxPrice) {
       where.pricePaise = {};
       if (minPrice) where.pricePaise.gte = Math.round(Number(minPrice) * 100);
@@ -47,6 +60,10 @@ export async function getProducts(req: Request, res: Response): Promise<void> {
         { title: { contains: search } },
         { titleMr: { contains: search } },
         { description: { contains: search } },
+        { targetCrops: { contains: search } },
+        { suitableSoil: { contains: search } },
+        { targetPestOrDisease: { contains: search } },
+        { maharashtraRegion: { contains: search } },
         { villageTown: { contains: search } },
         { district: { contains: search } },
       ];
@@ -56,7 +73,7 @@ export async function getProducts(req: Request, res: Response): Promise<void> {
     if (sortBy === "price_asc") orderBy = { pricePaise: "asc" };
     else if (sortBy === "price_desc") orderBy = { pricePaise: "desc" };
 
-    const take = Math.min(Number(limit) || 20, 50);
+    const take = Math.min(Number(limit) || 30, 50);
     const skip = ((Number(page) || 1) - 1) * take;
 
     const [products, totalCount] = await Promise.all([

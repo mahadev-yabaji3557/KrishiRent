@@ -4,7 +4,7 @@ import axios from "axios";
 import { Product } from "../types";
 import { ProductCard } from "../components/ProductCard";
 import { useApp } from "../context/AppContext";
-import { Filter, SlidersHorizontal, Search, RefreshCw } from "lucide-react";
+import { Filter, SlidersHorizontal, Search, RefreshCw, Sprout, Layers, MapPin } from "lucide-react";
 
 interface MarketplacePageProps {
   listingType?: "RENTAL" | "SALE" | "SUPPLY";
@@ -28,6 +28,9 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
   const [search, setSearch] = useState(searchParams.get("search") || "");
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get("category") || "");
   const [district, setDistrict] = useState(searchParams.get("district") || "");
+  const [crop, setCrop] = useState(searchParams.get("crop") || "");
+  const [soil, setSoil] = useState(searchParams.get("soil") || "");
+  const [region, setRegion] = useState(searchParams.get("region") || "");
   const [sortBy, setSortBy] = useState("newest");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
@@ -40,6 +43,9 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
       if (search) params.search = search;
       if (selectedCategory) params.category = selectedCategory;
       if (district) params.district = district;
+      if (crop) params.crop = crop;
+      if (soil) params.soil = soil;
+      if (region) params.region = region;
       if (minPrice) params.minPrice = minPrice;
       if (maxPrice) params.maxPrice = maxPrice;
       if (sortBy === "price_asc" || sortBy === "price_desc") params.sortBy = sortBy;
@@ -69,7 +75,7 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
 
   useEffect(() => {
     fetchListings();
-  }, [listingType, selectedCategory, district, sortBy]);
+  }, [listingType, selectedCategory, district, crop, soil, region, sortBy]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,6 +86,9 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
     setSearch("");
     setSelectedCategory("");
     setDistrict("");
+    setCrop("");
+    setSoil("");
+    setRegion("");
     setMinPrice("");
     setMaxPrice("");
     setSortBy("newest");
@@ -106,12 +115,12 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by machinery name, model, district or village..."
+              placeholder="Search by machinery, crop (Sugarcane/Cotton), soil (Black soil), district..."
               className="w-full pl-10 pr-4 py-2.5 bg-stone-50 border border-stone-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:bg-white transition"
             />
           </div>
           <button type="submit" className="btn-primary text-sm px-6 py-2.5 rounded-xl whitespace-nowrap">
-            Apply Search
+            Filter Listings
           </button>
         </form>
       </div>
@@ -122,7 +131,7 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
           <div className="flex items-center justify-between pb-3 border-b border-stone-100">
             <div className="flex items-center gap-2 font-bold text-stone-900 text-sm">
               <SlidersHorizontal className="w-4 h-4 text-emerald-700" />
-              <span>Filters</span>
+              <span>Agronomy & Land Filters</span>
             </div>
             <button
               onClick={resetFilters}
@@ -133,12 +142,99 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
             </button>
           </div>
 
+          {/* Maharashtra Agro-Climatic Region */}
+          <div>
+            <label className="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-2 flex items-center gap-1">
+              <MapPin className="w-3 h-3 text-emerald-700" />
+              Maharashtra Region
+            </label>
+            <select
+              value={region}
+              onChange={(e) => setRegion(e.target.value)}
+              className="w-full text-xs border border-stone-300 rounded-lg p-2 bg-stone-50 focus:bg-white focus:outline-none"
+            >
+              <option value="">All Regions of Maharashtra</option>
+              <option value="Western Maharashtra">Western Maharashtra (पश्चिम महाराष्ट्र)</option>
+              <option value="Vidarbha">Vidarbha (विदर्भ - Cotton & Soybean)</option>
+              <option value="Marathwada">Marathwada (मराठवाडा)</option>
+              <option value="Khandesh">Khandesh (खानदेश - Jalgaon/Dhule)</option>
+              <option value="Nashik">Nashik Region (द्राक्ष, कांदा, डाळिंब पट्टा)</option>
+              <option value="Konkan">Konkan (कोकण - भात, आंबा, काजू)</option>
+            </select>
+          </div>
+
+          {/* Target Crop Filter */}
+          <div>
+            <label className="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-2 flex items-center gap-1">
+              <Sprout className="w-3 h-3 text-emerald-700" />
+              Target Crop / Breed
+            </label>
+            <select
+              value={crop}
+              onChange={(e) => setCrop(e.target.value)}
+              className="w-full text-xs border border-stone-300 rounded-lg p-2 bg-stone-50 focus:bg-white focus:outline-none"
+            >
+              <option value="">All Crops & Breeds (सर्व पिके)</option>
+              <option value="Sugarcane">Sugarcane (ऊस)</option>
+              <option value="Cotton">Cotton (कापूस)</option>
+              <option value="Soybean">Soybean (सोयाबीन)</option>
+              <option value="Pomegranate">Pomegranate (डाळिंब)</option>
+              <option value="Grapes">Grapes (द्राक्षे)</option>
+              <option value="Onion">Onion (कांदा)</option>
+              <option value="Paddy">Paddy / Rice (भात)</option>
+              <option value="Wheat">Wheat & Gram (गहू व हरभरा)</option>
+            </select>
+          </div>
+
+          {/* Soil Type Filter */}
+          <div>
+            <label className="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-2 flex items-center gap-1">
+              <Layers className="w-3 h-3 text-stone-600" />
+              Land & Soil Type
+            </label>
+            <select
+              value={soil}
+              onChange={(e) => setSoil(e.target.value)}
+              className="w-full text-xs border border-stone-300 rounded-lg p-2 bg-stone-50 focus:bg-white focus:outline-none"
+            >
+              <option value="">All Soil Types (सर्व प्रकारची माती)</option>
+              <option value="Black">Heavy Black Cotton Soil (काळी कसदार / रेगूर)</option>
+              <option value="Red">Red Loamy & Murrum (तांबडी व मुरमाड जमीन)</option>
+              <option value="Sandy">Sandy Loam (वाळू मिश्रित निचऱ्याची जमीन)</option>
+              <option value="Laterite">Laterite Soil (जांभा दगड - कोकण)</option>
+            </select>
+          </div>
+
+          {/* District Filter */}
+          <div>
+            <label className="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-2">
+              District (जिल्हा)
+            </label>
+            <select
+              value={district}
+              onChange={(e) => setDistrict(e.target.value)}
+              className="w-full text-xs border border-stone-300 rounded-lg p-2 bg-stone-50 focus:bg-white focus:outline-none"
+            >
+              <option value="">All Maharashtra Districts</option>
+              <option value="Pune">Pune (पुणे)</option>
+              <option value="Nashik">Nashik (नाशिक)</option>
+              <option value="Kolhapur">Kolhapur (कोल्हापूर)</option>
+              <option value="Solapur">Solapur (सोलापूर)</option>
+              <option value="Satara">Satara (सातारा)</option>
+              <option value="Ahmednagar">Ahmednagar (अहमदनगर)</option>
+              <option value="Akola">Akola (अकोला)</option>
+              <option value="Yavatmal">Yavatmal (यवतमाळ)</option>
+              <option value="Jalgaon">Jalgaon (जळगाव)</option>
+              <option value="Ratnagiri">Ratnagiri (रत्नागिरी)</option>
+            </select>
+          </div>
+
           {/* Category Filter */}
           <div>
             <label className="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-2">
               Category
             </label>
-            <div className="space-y-1.5 text-sm">
+            <div className="space-y-1.5 text-xs">
               <label className="flex items-center gap-2 text-stone-600 hover:text-stone-900 cursor-pointer">
                 <input
                   type="radio"
@@ -163,63 +259,13 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
               ))}
             </div>
           </div>
-
-          {/* District Filter */}
-          <div>
-            <label className="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-2">
-              District / Region
-            </label>
-            <select
-              value={district}
-              onChange={(e) => setDistrict(e.target.value)}
-              className="w-full text-sm border border-stone-300 rounded-lg p-2 bg-stone-50 focus:bg-white focus:outline-none"
-            >
-              <option value="">All Maharashtra & India</option>
-              <option value="Pune">Pune (ÃƒÆ’Ã‚Â Ãƒâ€šÃ‚Â¤Ãƒâ€šÃ‚ÂªÃƒÆ’Ã‚Â Ãƒâ€šÃ‚Â¥Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â Ãƒâ€šÃ‚Â¤Ãƒâ€šÃ‚Â£ÃƒÆ’Ã‚Â Ãƒâ€šÃ‚Â¥ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¡)</option>
-              <option value="Satara">Satara (ÃƒÆ’Ã‚Â Ãƒâ€šÃ‚Â¤Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â Ãƒâ€šÃ‚Â¤Ãƒâ€šÃ‚Â¾ÃƒÆ’Ã‚Â Ãƒâ€šÃ‚Â¤Ãƒâ€šÃ‚Â¤ÃƒÆ’Ã‚Â Ãƒâ€šÃ‚Â¤Ãƒâ€šÃ‚Â¾ÃƒÆ’Ã‚Â Ãƒâ€šÃ‚Â¤Ãƒâ€šÃ‚Â°ÃƒÆ’Ã‚Â Ãƒâ€šÃ‚Â¤Ãƒâ€šÃ‚Â¾)</option>
-              <option value="Kolhapur">Kolhapur (ÃƒÆ’Ã‚Â Ãƒâ€šÃ‚Â¤ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ÃƒÆ’Ã‚Â Ãƒâ€šÃ‚Â¥ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¹ÃƒÆ’Ã‚Â Ãƒâ€šÃ‚Â¤Ãƒâ€šÃ‚Â²ÃƒÆ’Ã‚Â Ãƒâ€šÃ‚Â¥Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â Ãƒâ€šÃ‚Â¤Ãƒâ€šÃ‚Â¹ÃƒÆ’Ã‚Â Ãƒâ€šÃ‚Â¤Ãƒâ€šÃ‚Â¾ÃƒÆ’Ã‚Â Ãƒâ€šÃ‚Â¤Ãƒâ€šÃ‚ÂªÃƒÆ’Ã‚Â Ãƒâ€šÃ‚Â¥ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã‚Â Ãƒâ€šÃ‚Â¤Ãƒâ€šÃ‚Â°)</option>
-              <option value="Solapur">Solapur (ÃƒÆ’Ã‚Â Ãƒâ€šÃ‚Â¤Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â Ãƒâ€šÃ‚Â¥ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¹ÃƒÆ’Ã‚Â Ãƒâ€šÃ‚Â¤Ãƒâ€šÃ‚Â²ÃƒÆ’Ã‚Â Ãƒâ€šÃ‚Â¤Ãƒâ€šÃ‚Â¾ÃƒÆ’Ã‚Â Ãƒâ€šÃ‚Â¤Ãƒâ€šÃ‚ÂªÃƒÆ’Ã‚Â Ãƒâ€šÃ‚Â¥ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã‚Â Ãƒâ€šÃ‚Â¤Ãƒâ€šÃ‚Â°)</option>
-              <option value="Nashik">Nashik (ÃƒÆ’Ã‚Â Ãƒâ€šÃ‚Â¤Ãƒâ€šÃ‚Â¨ÃƒÆ’Ã‚Â Ãƒâ€šÃ‚Â¤Ãƒâ€šÃ‚Â¾ÃƒÆ’Ã‚Â Ãƒâ€šÃ‚Â¤Ãƒâ€šÃ‚Â¶ÃƒÆ’Ã‚Â Ãƒâ€šÃ‚Â¤Ãƒâ€šÃ‚Â¿ÃƒÆ’Ã‚Â Ãƒâ€šÃ‚Â¤ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢)</option>
-              <option value="Ahmednagar">Ahmednagar (ÃƒÆ’Ã‚Â Ãƒâ€šÃ‚Â¤ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã‚Â Ãƒâ€šÃ‚Â¤Ãƒâ€šÃ‚Â¹ÃƒÆ’Ã‚Â Ãƒâ€šÃ‚Â¤Ãƒâ€šÃ‚Â®ÃƒÆ’Ã‚Â Ãƒâ€šÃ‚Â¤Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã‚Â Ãƒâ€šÃ‚Â¤Ãƒâ€šÃ‚Â¨ÃƒÆ’Ã‚Â Ãƒâ€šÃ‚Â¤ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬ÂÃƒÆ’Ã‚Â Ãƒâ€šÃ‚Â¤Ãƒâ€šÃ‚Â°)</option>
-            </select>
-          </div>
-
-          {/* Price Range */}
-          <div>
-            <label className="block text-xs font-semibold text-stone-700 uppercase tracking-wider mb-2">
-              Price Range (ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¹)
-            </label>
-            <div className="flex items-center gap-2">
-              <input
-                type="number"
-                placeholder="Min"
-                value={minPrice}
-                onChange={(e) => setMinPrice(e.target.value)}
-                className="w-full text-xs p-2 border border-stone-300 rounded-lg bg-stone-50"
-              />
-              <span className="text-stone-400">-</span>
-              <input
-                type="number"
-                placeholder="Max"
-                value={maxPrice}
-                onChange={(e) => setMaxPrice(e.target.value)}
-                className="w-full text-xs p-2 border border-stone-300 rounded-lg bg-stone-50"
-              />
-            </div>
-            <button
-              onClick={fetchListings}
-              className="w-full mt-2 text-xs bg-stone-100 hover:bg-stone-200 text-stone-800 font-medium py-1.5 rounded-lg transition"
-            >
-              Apply Price
-            </button>
-          </div>
         </div>
 
         {/* Products Grid */}
         <div className="lg:col-span-3 space-y-4">
           {/* Top Sort Bar */}
           <div className="flex items-center justify-between text-xs text-stone-600 bg-white p-3 rounded-xl border border-stone-200">
-            <span>Showing <strong>{products.length}</strong> available listings</span>
+            <span>Showing <strong>{products.length}</strong> agricultural equipment & input listings</span>
             <div className="flex items-center gap-2">
               <label htmlFor="sort" className="font-medium text-stone-500">Sort by:</label>
               <select
@@ -243,7 +289,7 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
             </div>
           ) : products.length === 0 ? (
             <div className="bg-white p-12 text-center rounded-2xl border border-stone-200">
-              <p className="text-stone-500 text-sm">No items found matching your filters.</p>
+              <p className="text-stone-500 text-sm">No items found matching your land, crop, or district filters.</p>
               <button
                 onClick={resetFilters}
                 className="btn-outline text-xs mt-4 mx-auto"

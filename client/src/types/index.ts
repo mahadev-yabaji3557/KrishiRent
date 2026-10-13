@@ -48,6 +48,10 @@ export interface Product {
   descriptionMr?: string;
   type: "RENTAL" | "SALE" | "SUPPLY";
   subCategory?: string;
+  targetCrops?: string;
+  suitableSoil?: string;
+  targetPestOrDisease?: string;
+  maharashtraRegion?: string;
   pricePaise: number;
   hourlyRatePaise?: number;
   perAcreRatePaise?: number;
@@ -61,6 +65,7 @@ export interface Product {
   cibRegistrationNo?: string;
   activeIngredients?: string;
   dosageRecommendation?: string;
+  waitingPeriodDays?: number;
   villageTown: string;
   district: string;
   state: string;

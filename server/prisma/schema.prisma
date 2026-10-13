@@ -101,21 +101,29 @@ model Product {
   type                 String           // RENTAL, SALE, SUPPLY
   subCategory          String?
   
+  // Agri agronomy matching fields
+  targetCrops          String?          // e.g. "Sugarcane, Cotton, Soybean, Pomegranate, Onion, Grapes, Paddy"
+  suitableSoil         String?          // e.g. "Black Cotton Soil, Red Loamy, Sandy Loam, Clayey"
+  targetPestOrDisease  String?          // e.g. "Stem Borer, Aphids, Powdery Mildew, Downy Mildew, Weeds"
+  maharashtraRegion    String?          // e.g. "Vidarbha, Marathwada, Western Maharashtra, Khandesh, Konkan"
+  
   pricePaise           Int
   hourlyRatePaise      Int?
   perAcreRatePaise     Int?
   securityDepositPaise Int?
   
   stock                Int              @default(1)
-  condition            String?          // NEW, USED_EXCELLENT, USED_GOOD
+  condition            String?
   modelYear            Int?
   horsepower           Int?
   
+  // Agricultural compliance labels
   safetyWarning        String?
   toxicityColor        String?          // Red, Yellow, Blue, Green
   cibRegistrationNo    String?
   activeIngredients    String?
   dosageRecommendation String?
+  waitingPeriodDays    Int?             // Pre-Harvest Interval (PHI)
   
   villageTown          String
   district             String
@@ -140,6 +148,7 @@ model Product {
 
   @@index([type])
   @@index([district])
+  @@index([maharashtraRegion])
 }
 
 model RentalBooking {
@@ -156,9 +165,9 @@ model RentalBooking {
   rentalFeePaise      Int
   depositPaise        Int            @default(0)
   totalPaise          Int
-  status              String         @default("CONFIRMED") // PENDING, CONFIRMED, ACTIVE, RETURNED, CANCELLED
+  status              String         @default("CONFIRMED")
   
-  pickupOption        String         @default("DELIVERY") // PICKUP, DELIVERY
+  pickupOption        String         @default("DELIVERY")
   deliveryAddress     String?
   
   createdAt           DateTime       @default(now())

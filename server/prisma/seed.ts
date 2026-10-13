@@ -3,9 +3,9 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("🌱 Seeding authentic Indian agricultural data for KrishiRent & AgroMart...");
+  console.log("🌾 Seeding Comprehensive Maharashtra Agriculture Machinery, Implements & Crop Protection...");
 
-  // 1. Clean existing seed data
+  // Clean
   await prisma.review.deleteMany();
   await prisma.cartItem.deleteMany();
   await prisma.rentalBooking.deleteMany();
@@ -20,24 +20,24 @@ async function main() {
   await prisma.auditLog.deleteMany();
   await prisma.user.deleteMany();
 
-  // 2. Demo Users (Admin, Certified Seller, Local Farmer)
+  // Users
   const adminUser = await prisma.user.create({
     data: {
-      name: "Krishi Admin Officer",
+      name: "Maharashtra Agriculture Department Admin",
       email: "admin@krishirent.in",
       phone: "9876543210",
       role: "ADMIN",
-      villageOrTown: "Pune Krishi Bhavan",
+      villageOrTown: "Krishi Bhavan, Shivajinagar",
       district: "Pune",
       state: "Maharashtra",
       isEmailVerified: true,
     }
   });
 
-  const sellerUser = await prisma.user.create({
+  const seller1 = await prisma.user.create({
     data: {
       name: "Ramesh Patil",
-      email: "seller@krishirent.in",
+      email: "patil.agro@krishirent.in",
       phone: "9822012345",
       role: "SELLER",
       villageOrTown: "Baramati",
@@ -46,17 +46,42 @@ async function main() {
       isEmailVerified: true,
       sellerProfile: {
         create: {
-          businessName: "Patil Krishi Seva Kendra & Machinery Rentals",
-          farmOrShopAddress: "Shop No. 4, APMC Market Yard, Baramati",
+          businessName: "Patil Krishi Seva Kendra & Tractor Hub",
+          farmOrShopAddress: "APMC Market Yard, Baramati",
           district: "Pune",
           state: "Maharashtra",
           pincode: "413102",
-          gstinOrAadhaar: "27AABCP1234F1Z5",
           pesticideLicenseNo: "MH/PUN/PEST/2022/9481",
           fertilizerLicenseNo: "MH/PUN/FERT/2021/3309",
           isVerified: true,
-          verificationNotes: "Verified via Maharashtra State Agriculture Department License records.",
           payoutUpiId: "rameshpatil@okaxis",
+        }
+      }
+    },
+    include: { sellerProfile: true }
+  });
+
+  const seller2 = await prisma.user.create({
+    data: {
+      name: "Sanjay Deshmukh",
+      email: "vidarbha.machinery@krishirent.in",
+      phone: "9850123456",
+      role: "SELLER",
+      villageOrTown: "Akola MIDC",
+      district: "Akola",
+      state: "Maharashtra",
+      isEmailVerified: true,
+      sellerProfile: {
+        create: {
+          businessName: "Vidarbha Cotton & Soybean Farm Mechanization Hub",
+          farmOrShopAddress: "National Highway 6, Akola",
+          district: "Akola",
+          state: "Maharashtra",
+          pincode: "444001",
+          pesticideLicenseNo: "MH/AKL/PEST/2023/1102",
+          fertilizerLicenseNo: "MH/AKL/FERT/2020/5412",
+          isVerified: true,
+          payoutUpiId: "sanjaydeshmukh@okhdfcbank",
         }
       }
     },
@@ -65,9 +90,9 @@ async function main() {
 
   const farmerUser = await prisma.user.create({
     data: {
-      name: "Tukaram Shinde",
-      email: "farmer@krishirent.in",
-      phone: "9423188899",
+      name: "Anand Yabaji",
+      email: "yabajianand@gmail.com",
+      phone: "9356618282",
       role: "FARMER",
       villageOrTown: "Indapur",
       district: "Pune",
@@ -75,9 +100,9 @@ async function main() {
       isEmailVerified: true,
       addresses: {
         create: {
-          fullName: "Tukaram Shinde",
-          phone: "9423188899",
-          street: "Gat No 142, Indapur-Akluj Road",
+          fullName: "Anand Yabaji",
+          phone: "9356618282",
+          street: "Farm Gat No. 102, Indapur-Akluj Road",
           villageTown: "Indapur",
           district: "Pune",
           state: "Maharashtra",
@@ -88,7 +113,7 @@ async function main() {
     }
   });
 
-  // 3. Categories
+  // Categories
   const categories = [
     {
       name: "Tractors & Heavy Machinery",
@@ -98,53 +123,53 @@ async function main() {
       description: "45HP - 75HP 4WD/2WD Tractors and high efficiency combines."
     },
     {
-      name: "Tillage & Implements",
+      name: "Tillage, Plough & Rotavators",
       nameMr: "मशागतीची अवजारे (रोटाव्हेटर / नांगर)",
       slug: "tillage-implements",
       type: "RENTAL",
-      description: "Rotavators, MB Ploughs, Disc Harrows and Cultivators."
+      description: "Reversible MB Ploughs, Rotavators, Disc Harrows and Cultivators."
+    },
+    {
+      name: "Sowing, Planting & Weeders",
+      nameMr: "पेरणी यंत्रे आणि आंतरमशागत अवजारे",
+      slug: "sowing-weeders",
+      type: "RENTAL",
+      description: "Pneumatic Planters, Automatic Seed-cum-Fertilizer Drills & Power Weeders."
     },
     {
       name: "Harvesting & Threshing",
       nameMr: "कापणी आणि मळणी यंत्रे",
       slug: "harvesting-threshing",
       type: "RENTAL",
-      description: "Multi-crop threshers, sugarcane harvesters and straw reapers."
+      description: "Sugarcane Harvesters, Multi-crop Threshers, and Cotton Pickers."
     },
     {
-      name: "Used & New Equipment Sales",
-      nameMr: "नवीन आणि जुनी शेती अवजारे विक्री",
-      slug: "equipment-sales",
-      type: "SALE",
-      description: "Certified tractors, power tillers, sprayers and pumps for sale."
+      name: "Specialized Orchard & Boom Sprayers",
+      nameMr: "फळबाग फवारणी यंत्रे आणि ट्रॅक्टर स्प्रेअर",
+      slug: "sprayers-equipment",
+      type: "RENTAL",
+      description: "High-pressure Tractor Mounted Boom Sprayers and Orchard Blower Sprayers."
     },
     {
-      name: "Fertilizers & Manure (Khad)",
-      nameMr: "खते आणि सेंद्रिय खत",
-      slug: "fertilizers-manure",
-      type: "SUPPLY",
-      description: "IFFCO Urea, DAP, NPK 10:26:26, Potash, Vermicompost and Bio-fertilizers."
-    },
-    {
-      name: "Certified Seeds (Biyane)",
-      nameMr: "प्रमाणित बियाणे",
-      slug: "certified-seeds",
-      type: "SUPPLY",
-      description: "High yield soybean, cotton, wheat, onion and vegetable seeds."
-    },
-    {
-      name: "Pesticides & Crop Protection",
-      nameMr: "कीटकनाशके आणि पीक संरक्षण",
+      name: "Certified Agro Chemicals & Pesticides",
+      nameMr: "प्रमाणित कीटकनाशके आणि बुरशीनाशके",
       slug: "pesticides-protection",
       type: "SUPPLY",
-      description: "CIB-registered insecticides, fungicides, herbicides and organic neem sprays."
+      description: "CIB-RC registered insecticides, fungicides, and herbicides with safety labels."
     },
     {
-      name: "Irrigation & Solar Pumps",
-      nameMr: "ठिबक सिंचन आणि सौर पंप",
-      slug: "irrigation-solar",
+      name: "Fertilizers, Micronutrients & Khad",
+      nameMr: "रासायनिक व सेंद्रिय खते (खाद)",
+      slug: "fertilizers-manure",
       type: "SUPPLY",
-      description: "Drip irrigation sets, sprinkler kits and submersible pumps."
+      description: "IFFCO Urea, DAP, Potash, 10:26:26, 12:61:00, Zinc & Boron."
+    },
+    {
+      name: "Certified High-Yield Seeds (Biyane)",
+      nameMr: "प्रमाणित सुधारित बियाणे",
+      slug: "certified-seeds",
+      type: "SUPPLY",
+      description: "Mahyco, Mahabeej certified Soybean, Cotton, Wheat, Onion, and Sugarcane sets."
     }
   ];
 
@@ -154,264 +179,331 @@ async function main() {
     catMap.set(cat.slug, created.id);
   }
 
-  // 4. Products & Machinery Listings
-  const sellerId = sellerUser.sellerProfile!.id;
+  const s1 = seller1.sellerProfile!.id;
+  const s2 = seller2.sellerProfile!.id;
 
-  const productsData = [
-    // Rental 1: Mahindra 575 DI Tractor
+  const catalog = [
+    // 1. WESTERN MAHARASHTRA / PUNE: Sugarcane & Heavy Black Soils
     {
-      sellerId,
+      sellerId: s1,
       categoryId: catMap.get("tractors-heavy-machinery"),
-      title: "Mahindra 575 DI XP Plus Tractor (47 HP)",
-      titleMr: "महिंद्रा ५७५ डीआय एक्सपी प्लस ट्रॅक्टर (४७ एचपी भाड्याने)",
-      description: "Reliable 47 HP Mahindra tractor equipped with power steering and dual clutch. Ideal for heavy ploughing, rotavator operations, trolley haulage and puddling.",
-      descriptionMr: "४७ एचपी क्षमतेचा अत्यंत इंधन-बचत करणारा महिंद्रा ट्रॅक्टर. नांगरणी, रोटाव्हेटर, ट्रेलर वाहतूक आणि फवारणीसाठी उपलब्ध.",
+      title: "Mahindra 575 DI XP Plus (47 HP) with Dual Clutch",
+      titleMr: "महिंद्रा ५७५ डीआय एक्सपी प्लस ट्रॅक्टर (४७ एचपी)",
+      description: "Heavy duty 4-cylinder engine designed for deep ploughing and rotavator operations in heavy black cotton soils (काळी कसदार जमीन) of Western Maharashtra. Ideal for sugarcane cultivation, tillage and trolley haulage.",
+      descriptionMr: "पश्चिम महाराष्ट्रातील काळ्या कसदार जमिनीतील खोल नांगरणी आणि ऊस शेतीसाठी सर्वोत्तम ४७ एचपी ट्रॅक्टर.",
       type: "RENTAL",
       subCategory: "Tractor",
+      targetCrops: "Sugarcane (ऊस), Soybean (सोयाबीन), Wheat (गहू), Jowar (ज्वारी)",
+      suitableSoil: "Heavy Black Cotton Soil (काळी कसदार जमीन), Clayey Loam",
+      maharashtraRegion: "Western Maharashtra (पुणे, सातारा, कोल्हापूर, सोलापूर)",
       pricePaise: 180000, // ₹1,800/day
-      hourlyRatePaise: 35000, // ₹350/hour
-      perAcreRatePaise: 85000, // ₹850/acre ploughing
-      securityDepositPaise: 500000, // ₹5,000 refundable
-      stock: 3,
+      hourlyRatePaise: 35000,
+      perAcreRatePaise: 85000,
+      securityDepositPaise: 500000,
+      stock: 4,
       condition: "USED_EXCELLENT",
       modelYear: 2023,
       horsepower: 47,
       villageTown: "Baramati",
       district: "Pune",
       state: "Maharashtra",
-      deliveryAvailable: true,
-      deliveryFeePaise: 25000,
-      imagesJson: JSON.stringify([
-        "https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0?w=800",
-        "https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?w=800"
-      ]),
-      specificationsJson: JSON.stringify({
-        "Fuel Type": "Diesel",
-        "Cylinders": 4,
-        "PTO Power": "42 HP",
-        "Hydraulics Lift": "1480 kg",
-        "Driver Provided": "Yes (Upon Request)"
-      })
+      imagesJson: JSON.stringify(["https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0?w=800"]),
+      specificationsJson: JSON.stringify({ "Engine": "4 Cylinder, 2979 CC", "Lift Capacity": "1480 kg", "PTO": "42 HP" })
     },
-    // Rental 2: Shaktiman Rotary Tiller
     {
-      sellerId,
+      sellerId: s1,
       categoryId: catMap.get("tillage-implements"),
-      title: "Shaktiman Regular Series 7-Feet Rotavator",
-      titleMr: "शक्तिमान ७-फूट रोटाव्हेटर (जमीन मशागत)",
-      description: "High durability 48 L-type blade rotary tiller for fine seedbed preparation in single pass. Compatible with 45+ HP tractors.",
-      descriptionMr: "एकाच फेरीत उत्तम मशागत करणारे शक्तिमान ४८ ब्लेड रोटाव्हेटर. ४५+ एचपी ट्रॅक्टरसाठी योग्य.",
+      title: "Lemken 2-Bottom Hydraulic Reversible MB Plough",
+      titleMr: "लेमकेन २-बॉटम हायड्रॉलिक रिव्हर्सिबल नांगर",
+      description: "High tensile steel reversible mouldboard plough engineered for deep summer ploughing in hard clayey soils. Inverts deep soil layer, destroys weed roots and sugarcane stubbles.",
+      descriptionMr: "ऊस खोडवे काढणे आणि उन्हाळी खोल नांगरणीसाठी अत्यंत मजबूत लेमकेन रिव्हर्सिबल नांगर.",
       type: "RENTAL",
-      pricePaise: 90000, // ₹900/day
-      hourlyRatePaise: 20000, // ₹200/hour
-      perAcreRatePaise: 50000, // ₹500/acre
-      securityDepositPaise: 250000,
+      subCategory: "Plough",
+      targetCrops: "Sugarcane (ऊस), Cotton (कापूस), Gram (हरभरा)",
+      suitableSoil: "Hard Black Soil, Medium Black Soil",
+      maharashtraRegion: "Western Maharashtra (पुणे, सोलापूर, सांगली)",
+      pricePaise: 120000,
+      hourlyRatePaise: 25000,
+      perAcreRatePaise: 75000,
+      securityDepositPaise: 300000,
       stock: 2,
-      condition: "USED_EXCELLENT",
       modelYear: 2024,
-      villageTown: "Baramati",
-      district: "Pune",
-      state: "Maharashtra",
-      deliveryAvailable: true,
-      deliveryFeePaise: 15000,
-      imagesJson: JSON.stringify([
-        "https://images.unsplash.com/photo-1589876735824-3437c355fb50?w=800"
-      ]),
-      specificationsJson: JSON.stringify({
-        "Working Width": "7 Feet (2.1 m)",
-        "No. of Blades": 48,
-        "Gearbox": "Multi-speed 4-speed",
-        "Hitch Type": "Category-II 3 Point"
-      })
-    },
-    // Rental 3: Claas Multi-crop Combine Harvester
-    {
-      sellerId,
-      categoryId: catMap.get("harvesting-threshing"),
-      title: "Claas Crop Tiger 30 Terra Trac Combine Harvester",
-      titleMr: "क्लास क्रॉप टायगर ३० कम्बाईन हार्वेस्टर (कापणी व मळणी)",
-      description: "Rubber tracked harvester ideal for wet fields and muddy soils. Highly efficient harvesting for paddy, wheat, soybean and gram with minimal grain loss.",
-      descriptionMr: "भात, सोयाबीन, गहू आणि हरभरा कापणीसाठी उत्कृष्ट रबर-ट्रॅक हार्वेस्टर. चिखलातही उत्तम काम करते.",
-      type: "RENTAL",
-      pricePaise: 1200000, // ₹12,000/day
-      hourlyRatePaise: 180000, // ₹1,800/hr
-      perAcreRatePaise: 220000, // ₹2,200/acre
-      securityDepositPaise: 1500000,
-      stock: 1,
-      condition: "USED_GOOD",
-      modelYear: 2022,
-      horsepower: 60,
-      villageTown: "Baramati",
-      district: "Pune",
-      state: "Maharashtra",
-      deliveryAvailable: true,
-      deliveryFeePaise: 50000,
-      imagesJson: JSON.stringify([
-        "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=800"
-      ]),
-      specificationsJson: JSON.stringify({
-        "Grain Tank Capacity": "1200 Litres",
-        "Cutting Width": "2.1 Metres",
-        "Track Width": "Rubber Terra Trac"
-      })
-    },
-    // Sale 1: Sonalika DI 745 III Tractor (Certified Used)
-    {
-      sellerId,
-      categoryId: catMap.get("equipment-sales"),
-      title: "Sonalika DI 745 III Sikander (50 HP) - Certified Used",
-      titleMr: "सोनालिका डीआय ७४५ सिकंदर (५० एचपी) - सर्टिफाईड सेकंड हँड",
-      description: "Fully inspected and serviced 2021 model Sonalika 50HP tractor. Clean engine condition, 85% tyre tread remaining, clear RTO documents and single owner.",
-      descriptionMr: "२०२१ चे मॉडेल, केवळ १४०० तास चाललेला एकच मालक असलेला ट्रॅक्टर. आरटीओ पेपर पूर्ण आणि टायर्स ८५% शिल्लक.",
-      type: "SALE",
-      pricePaise: 42500000, // ₹4,25,000
-      stock: 1,
-      condition: "USED_EXCELLENT",
-      modelYear: 2021,
-      horsepower: 50,
       villageTown: "Indapur",
       district: "Pune",
       state: "Maharashtra",
-      deliveryAvailable: true,
-      deliveryFeePaise: 0,
-      imagesJson: JSON.stringify([
-        "https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?w=800"
-      ]),
-      specificationsJson: JSON.stringify({
-        "Hours Run": "1,420 Hours",
-        "RTO Passing": "MH-42 (Pune)",
-        "Battery": "New Exide 12V 88Ah with warranty",
-        "Insurance": "Valid till Dec 2026"
-      })
+      imagesJson: JSON.stringify(["https://images.unsplash.com/photo-1589876735824-3437c355fb50?w=800"])
     },
-    // Supply 1: IFFCO DAP Fertilizer (Khad)
+
+    // 2. NASHIK / MARATHWADA: Grapes, Pomegranate & Onion (Light to Medium Loamy Soil)
     {
-      sellerId,
-      categoryId: catMap.get("fertilizers-manure"),
-      title: "IFFCO Di-Ammonium Phosphate (DAP 18:46:0) - 50 Kg Bag",
-      titleMr: "इफको डीएपी खत (१८:४६:०) - ५० किलो पोते",
-      description: "Subsidized high-grade phosphatic fertilizer providing 18% Nitrogen and 46% Phosphorus. Essential for root proliferation and early plant vigor in all field crops.",
-      descriptionMr: "१८% नत्र आणि ४६% स्फुरद देणारे उच्च दर्जाचे खत. पिकांची मुळे मजबूत करण्यासाठी आणि लवकर वाढीसाठी आवश्यक.",
+      sellerId: s1,
+      categoryId: catMap.get("sprayers-equipment"),
+      title: "Mitra Airotec 600-Litre Tractor Orchard Blower Sprayer",
+      titleMr: "मित्रा एरोटेक ६००-लिटर फळबाग ब्लोअर स्प्रेअर (द्राक्षे, डाळिंब)",
+      description: "Advanced orchard mist blower sprayer with 32 Italian brass nozzles for uniform coverage in grape vineyards, pomegranate and citrus orchards. Eliminates manual labor and guarantees 100% spray canopy penetration.",
+      descriptionMr: "द्राक्ष, डाळिंब आणि संत्रा बागांसाठी इटालियन नोजल असलेले ६०० लिटर ब्लोअर स्प्रेअर. औषधांची बचत आणि संपूर्ण झाडावर फवारणी.",
+      type: "RENTAL",
+      subCategory: "Orchard Sprayer",
+      targetCrops: "Grapes (द्राक्षे), Pomegranate (डाळिंब), Guava (पेरू), Orange/Citrus (संत्रा)",
+      suitableSoil: "Well-drained Red Soil, Sandy Loam (मुरमाड व हलकी जमीन)",
+      targetPestOrDisease: "Downy Mildew, Powdery Mildew, Thrips, Bacterial Blight (तेल्या)",
+      maharashtraRegion: "Nashik & Marathwada (नाशिक, अहमदनगर, सांगली, सोलापूर)",
+      pricePaise: 220000, // ₹2,200/day
+      hourlyRatePaise: 40000,
+      securityDepositPaise: 600000,
+      stock: 3,
+      modelYear: 2024,
+      villageTown: "Niphad",
+      district: "Nashik",
+      state: "Maharashtra",
+      imagesJson: JSON.stringify(["https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?w=800"])
+    },
+
+    // 3. VIDARBHA & MARATHWADA: Cotton & Soybean Belt (Akola, Yavatmal, Nanded, Jalna)
+    {
+      sellerId: s2,
+      categoryId: catMap.get("sowing-weeders"),
+      title: "Mahindra 9-Tyne Automatic Seed-cum-Fertilizer Drill",
+      titleMr: "९-दाती स्वयंचलित बियाणे व खत पेरणी यंत्र",
+      description: "Precision metering mechanism for sowing Soybean, Cotton intercrops, Chickpea and Wheat simultaneously with balanced basal fertilizer dose placement at root level.",
+      descriptionMr: "विदर्भातील सोयाबीन व कापूस पिकांसाठी अचूक बियाणे आणि खत एकाच वेळी टाकणारे ९-दाती पेरणी यंत्र.",
+      type: "RENTAL",
+      subCategory: "Seed Drill",
+      targetCrops: "Soybean (सोयाबीन), Cotton (कापूस), Pigeonpea (तूर), Gram (हरभरा)",
+      suitableSoil: "Black Cotton Soil (रेगूर माती), Medium Black Soil",
+      maharashtraRegion: "Vidarbha & Marathwada (अकोला, यवतमाळ, अमरावती, नांदेड, जालना)",
+      pricePaise: 110000, // ₹1,100/day
+      perAcreRatePaise: 45000,
+      securityDepositPaise: 200000,
+      stock: 5,
+      modelYear: 2023,
+      villageTown: "Akola",
+      district: "Akola",
+      state: "Maharashtra",
+      imagesJson: JSON.stringify(["https://images.unsplash.com/photo-1563514227147-6d2ff665a6a0?w=800"])
+    },
+    {
+      sellerId: s2,
+      categoryId: catMap.get("harvesting-threshing"),
+      title: "Punjab Multi-Crop High-Speed Thresher (Soybean, Gram, Wheat)",
+      titleMr: "पंजाब मल्टीक्रॉप मळणी यंत्र (सोयाबीन, हरभरा, गहू)",
+      description: "Tractor PTO driven heavy-duty thresher with aspirator fan for zero seed breakage in Soybean, Tur, Urad, Moong, and Chana harvesting. Yields crystal clean grain bags directly into trolleys.",
+      descriptionMr: "सोयाबीन, तूर आणि हरभरा मळणीसाठी शून्य दाणा नुकसान (Zero Grain Loss) देणारे मल्टीक्रॉप थ्रेशर.",
+      type: "RENTAL",
+      subCategory: "Thresher",
+      targetCrops: "Soybean (सोयाबीन), Gram (हरभरा), Pigeonpea (तूर), Wheat (गहू)",
+      suitableSoil: "All Maharashtra Soils",
+      maharashtraRegion: "Vidarbha, Marathwada, Khandesh (अमरावती, बुलढाणा, परभणी, धुळे)",
+      pricePaise: 250000, // ₹2,500/day
+      hourlyRatePaise: 50000,
+      securityDepositPaise: 500000,
+      stock: 3,
+      modelYear: 2024,
+      villageTown: "Yavatmal",
+      district: "Yavatmal",
+      state: "Maharashtra",
+      imagesJson: JSON.stringify(["https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=800"])
+    },
+
+    // 4. KONKAN REGION: Paddy Fields, Cashew & Mango (Laterite Red Soil)
+    {
+      sellerId: s1,
+      categoryId: catMap.get("tractors-heavy-machinery"),
+      title: "VST Shakti 130 DI Power Tiller (13 HP) with Cage Wheels",
+      titleMr: "व्हीएसटी शक्ती १३० डीआय पॉवर टिलर (भात खाचरे व कोकणासाठी)",
+      description: "Compact 13 HP diesel tiller equipped with water-resistant rotavator and steel cage wheels for paddy wetland puddling, terraced hill farming, and mango/cashew orchard weeding in Konkan.",
+      descriptionMr: "कोकणातील भात खाचरे (चिखलणी) आणि काजू, आंबा बागांसाठी हलका व शक्तिशाली व्हीएसटी पॉवर टिलर.",
+      type: "RENTAL",
+      subCategory: "Power Tiller",
+      targetCrops: "Paddy/Rice (भात), Alphonso Mango (हापूस आंबा), Cashew (काजू)",
+      suitableSoil: "Laterite Red Soil (जांभा दगड व लाल माती), Coastal Alluvial",
+      maharashtraRegion: "Konkan (रत्नागिरी, सिंधुदुर्ग, रायगड, ठाणे)",
+      pricePaise: 95000, // ₹950/day
+      hourlyRatePaise: 20000,
+      securityDepositPaise: 250000,
+      stock: 4,
+      horsepower: 13,
+      villageTown: "Chiplun",
+      district: "Ratnagiri",
+      state: "Maharashtra",
+      imagesJson: JSON.stringify(["https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?w=800"])
+    },
+
+    // 5. CROP-SPECIFIC PESTICIDES & FUNGICIDES (Statutory CIB-RC Compliance)
+    // A. Cotton Pink Bollworm & Whitefly:
+    {
+      sellerId: s2,
+      categoryId: catMap.get("pesticides-protection"),
+      title: "UPL Ulala Insecticide (Flonicamid 50% WG) - 150g",
+      titleMr: "यूपीएल उलाला कीटकनाशक (फ्लोनिकामाइड ५०% डब्ल्यूजी) - कापूस मावा, तुडतुडे",
+      description: "Targeted systemic insecticide with anti-feeding action against sucking pests (aphids, jassids, whitefly) in Cotton and Chilli. Safe for beneficial pollinators like honeybees.",
+      descriptionMr: "कापूस आणि मिरचीवरील रसशोषक किडींवर (मावा, तुडतुडे, पांढरी माशी) १००% प्रभावी सिस्टेमिक कीटकनाशक.",
       type: "SUPPLY",
-      subCategory: "Chemical Fertilizer",
-      pricePaise: 135000, // ₹1,350 MRP per official govt guideline
-      stock: 120,
-      safetyWarning: "Keep in cool, dry place. Wash hands after handling. Do not mix directly with zinc fertilizers.",
+      subCategory: "Insecticide",
+      targetCrops: "Cotton (कापूस), Chilli (मिरची), Paddy (भात)",
+      suitableSoil: "All Soils",
+      targetPestOrDisease: "Aphids (मावा), Jassids (तुडतुडे), Whitefly (पांढरी माशी)",
+      maharashtraRegion: "Vidarbha, Marathwada, Khandesh (जळगाव, यवतमाळ, नांदेड, औरंगाबाद)",
+      pricePaise: 115000, // ₹1,150
+      stock: 75,
+      toxicityColor: "Blue",
+      safetyWarning: "Wear safety goggles and gloves. Pre-Harvest Interval (PHI): 15 days.",
+      cibRegistrationNo: "CIR-10294/2012-Flonicamid(WG)(332)-18",
+      activeIngredients: "Flonicamid 50% WG",
+      dosageRecommendation: "60 grams per acre (0.4 g per litre of water)",
+      villageTown: "Jalgaon",
+      district: "Jalgaon",
+      state: "Maharashtra",
+      imagesJson: JSON.stringify(["https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?w=800"])
+    },
+
+    // B. Pomegranate & Grape Bacterial Blight / Downy Mildew:
+    {
+      sellerId: s1,
+      categoryId: catMap.get("pesticides-protection"),
+      title: "Bayer Aliette Systemic Fungicide (Fosetyl-Al 80% WP) - 500g",
+      titleMr: "बायर एलियट बुरशीनाशक (फॉसेटिल-अल ८०% डब्ल्यूपी) - डाळिंब व द्राक्ष",
+      description: "Two-way systemic fungicide providing true basipetal and acropetal translocation to control Phytophthora foot rot, gummosis, and Downy Mildew in Grapes, Pomegranate, and Citrus.",
+      descriptionMr: "द्राक्षावरील डाऊनी मिल्ड्यू आणि डाळिंबावरील फायटोप्थोरा, डिंक्या रोगावर उत्कृष्ट प्रतिबंधक बुरशीनाशक.",
+      type: "SUPPLY",
+      subCategory: "Fungicide",
+      targetCrops: "Pomegranate (डाळिंब), Grapes (द्राक्षे), Citrus (संत्रा/मोसंबी)",
+      suitableSoil: "Red Loamy, Sandy Loam Soils",
+      targetPestOrDisease: "Downy Mildew (केवडा), Phytophthora Collar Rot (डिंक्या), Damping Off",
+      maharashtraRegion: "Nashik, Solapur, Sangli, Ahmednagar (नाशिक, सोलापूर, सांगली)",
+      pricePaise: 142000, // ₹1,420
+      stock: 60,
+      toxicityColor: "Green",
+      safetyWarning: "Do not mix with copper oxychloride or foliar nitrogen fertilizers.",
+      cibRegistrationNo: "CIR-1144/90-Fosetyl(WP)-22",
+      activeIngredients: "Fosetyl-Al 80% WP",
+      dosageRecommendation: "2 grams per litre of water",
+      villageTown: "Solapur",
+      district: "Solapur",
+      state: "Maharashtra",
+      imagesJson: JSON.stringify(["https://images.unsplash.com/photo-1628352081506-83c43123ed6d?w=800"])
+    },
+
+    // C. Sugarcane Early Shoot Borer & White Grub:
+    {
+      sellerId: s1,
+      categoryId: catMap.get("pesticides-protection"),
+      title: "FMC Coragen SC Insecticide (Chlorantraniliprole 18.5% SC) - 150ml",
+      titleMr: "एफएमसी कोराजन कीटकनाशक (ऊस कांडी कीड व खोडकीड नियंत्रणासाठी)",
+      description: "Rynaxypyr powered anthranilic diamide insecticide giving long-lasting 60-day protection against Early Shoot Borer and Top Borer in Sugarcane, and Pod Borer in Soybean and Bengal Gram.",
+      descriptionMr: "ऊस पिकातील खोडकीड व कांडी कीड, तसेच सोयाबीनवरील लष्करी अळीवर ६० दिवसांचे दीर्घकालीन संरक्षण देणारे औषध.",
+      type: "SUPPLY",
+      subCategory: "Insecticide",
+      targetCrops: "Sugarcane (ऊस), Soybean (सोयाबीन), Bengal Gram (हरभरा), Tomato (टोमॅटो)",
+      suitableSoil: "Heavy Black Soil, Alluvial Soil",
+      targetPestOrDisease: "Early Shoot Borer (खोडकीड), Top Borer, Pod Borer (घाटे अळी)",
+      maharashtraRegion: "Western Maharashtra & Marathwada (कोल्हापूर, सांगली, सातारा, पुणे, लातूर)",
+      pricePaise: 185000, // ₹1,850
+      stock: 90,
+      toxicityColor: "Green",
+      safetyWarning: "Apply via drenching near sugarcane roots for maximum efficacy.",
+      cibRegistrationNo: "CIR-58385/2008-Chlorantraniliprole(SC)(287)-13",
+      activeIngredients: "Chlorantraniliprole 18.5% SC",
+      dosageRecommendation: "150 ml per acre (Drenching at 30 to 45 days after planting)",
+      villageTown: "Kolhapur",
+      district: "Kolhapur",
+      state: "Maharashtra",
+      imagesJson: JSON.stringify(["https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?w=800"])
+    },
+
+    // 6. FERTILIZERS & SOIL HEALTH (IFFCO, Mahadhan, Water Soluble Fertigation)
+    {
+      sellerId: s1,
+      categoryId: catMap.get("fertilizers-manure"),
+      title: "Mahadhan Smarttek NPK 10:26:26 Complex Fertilizer - 50 Kg Bag",
+      titleMr: "महाधन स्मार्टटेक १०:२६:२६ ग्रेड खत (५० किलो बॅग)",
+      description: "High potash and phosphorus balanced fertilizer customized for Maharashtra's sugarcane, onion, potato, and cotton crops. Formulated with coated sulphur and micronutrients to enhance sugar recovery and bulb size.",
+      descriptionMr: "महाराष्ट्रातील ऊस, कांदा व बटाटा पिकांसाठी स्फुरद व पालाशचा सर्वोत्तम डोस देणारे १०:२६:२६ खत.",
+      type: "SUPPLY",
+      subCategory: "Complex Fertilizer",
+      targetCrops: "Sugarcane (ऊस), Onion (कांदा), Cotton (कापूस), Pomegranate (डाळिंब)",
+      suitableSoil: "Black Cotton Soil, Red Soil (सर्व प्रकारची जमीन)",
+      maharashtraRegion: "All 36 Maharashtra Districts",
+      pricePaise: 147000, // ₹1,470
+      stock: 200,
+      toxicityColor: "Green",
+      villageTown: "Pune",
+      district: "Pune",
+      state: "Maharashtra",
+      imagesJson: JSON.stringify(["https://images.unsplash.com/photo-1628352081506-83c43123ed6d?w=800"])
+    },
+    {
+      sellerId: s1,
+      categoryId: catMap.get("fertilizers-manure"),
+      title: "IFFCO 100% Water Soluble NPK 12:61:00 (Mono Ammonium Phosphate) - 25 Kg",
+      titleMr: "इफको १००% विद्राव्य खत १२:६१:०० (ठिबक सिंचनासाठी)",
+      description: "100% water-soluble fertigation fertilizer for early root development, flowering boost, and shoot vigor in drip-irrigated grapes, pomegranates, tomatoes and sugarcane.",
+      descriptionMr: "ठिबक सिंचनाद्वारे मुळांची जोमदार वाढ आणि फुलोऱ्यासाठी उपयुक्त १००% पाण्यात विरघळणारे खत.",
+      type: "SUPPLY",
+      subCategory: "Drip Fertigation",
+      targetCrops: "Grapes, Pomegranate, Tomato, Capsicum, Sugarcane",
+      suitableSoil: "All Drip Irrigated Soils",
+      maharashtraRegion: "Nashik, Pune, Solapur, Sangli, Satara",
+      pricePaise: 345000, // ₹3,450
+      stock: 110,
       toxicityColor: "Green",
       villageTown: "Baramati",
       district: "Pune",
       state: "Maharashtra",
-      deliveryAvailable: true,
-      deliveryFeePaise: 5000,
-      imagesJson: JSON.stringify([
-        "https://images.unsplash.com/photo-1628352081506-83c43123ed6d?w=800"
-      ]),
-      specificationsJson: JSON.stringify({
-        "Brand": "IFFCO",
-        "Weight": "50 Kilograms",
-        "Composition": "N: 18%, P2O5: 46%",
-        "State of Form": "Granular"
-      })
+      imagesJson: JSON.stringify(["https://images.unsplash.com/photo-1586771107445-d3ca888129ff?w=800"])
     },
-    // Supply 2: Mahyco Soybean Seeds
+
+    // 7. CERTIFIED SEEDS (Mahabeej & University Certified Varieties)
     {
-      sellerId,
+      sellerId: s2,
       categoryId: catMap.get("certified-seeds"),
-      title: "Mahyco Certified JS-335 Soybean Seeds (30 Kg Bag)",
-      titleMr: "माहिको प्रमाणित जेएस-३३५ सोयाबीन बियाणे (३० किलो बॅग)",
-      description: "Govt certified high-germination seed bag (above 85% germination rate). Disease resistant variety with high oil content and 95-100 day maturity duration.",
-      descriptionMr: "८५% पेक्षा जास्त उगवण क्षमता असलेले प्रमाणित सोयाबीन बियाणे. कीड व रोगास प्रतिकारक्षम.",
+      title: "Mahabeej Certified KDS-726 (Phule Sangam) Soybean Seeds - 30 Kg",
+      titleMr: "महाबीज प्रमाणित केडीएस-७२६ (फुले संगम) सोयाबीन बियाणे - ३० किलो",
+      description: "Breeder-tested variety developed by MPKV Rahuri University. Highly resistant to stem borer, rust and yellow mosaic virus with unprecedented yield potential of 12-15 quintals per acre.",
+      descriptionMr: "महात्मा फुले कृषी विद्यापीठ राहुरी विकसित 'फुले संगम' (केडीएस ७२६) सोयाबीन बियाणे. तांबेरा रोगास प्रतिकारक्षम आणि एकरी १२-१५ क्विंटल उत्पादन.",
       type: "SUPPLY",
       subCategory: "Certified Seed",
-      pricePaise: 285000, // ₹2,850
-      stock: 80,
-      safetyWarning: "Treated with Thiram & Carbendazim fungicide. Do not use for human or animal consumption.",
+      targetCrops: "Soybean (सोयाबीन)",
+      suitableSoil: "Medium to Deep Black Soils of Vidarbha & Marathwada",
+      maharashtraRegion: "Vidarbha, Marathwada, Western Maharashtra (अमरावती, अकोला, वाशिम, हिंगोली, सातारा)",
+      pricePaise: 315000, // ₹3,150
+      stock: 150,
       toxicityColor: "Blue",
-      villageTown: "Baramati",
-      district: "Pune",
+      safetyWarning: "Chemical seed treated with Thiram. Strictly not for food, feed, or oil purposes.",
+      villageTown: "Akola",
+      district: "Akola",
       state: "Maharashtra",
-      deliveryAvailable: true,
-      deliveryFeePaise: 4000,
-      imagesJson: JSON.stringify([
-        "https://images.unsplash.com/photo-1586771107445-d3ca888129ff?w=800"
-      ]),
-      specificationsJson: JSON.stringify({
-        "Variety": "JS-335",
-        "Germination": "85%+",
-        "Purity": "98%",
-        "Net Weight": "30 Kg"
-      })
+      imagesJson: JSON.stringify(["https://images.unsplash.com/photo-1586771107445-d3ca888129ff?w=800"])
     },
-    // Supply 3: Bayer Confidor Insecticide (Pesticide)
     {
-      sellerId,
-      categoryId: catMap.get("pesticides-protection"),
-      title: "Bayer Confidor Insecticide (Imidacloprid 17.8% SL) - 250ml",
-      titleMr: "बायर कॉन्फिडॉर कीटकनाशक (इमिडाक्लोप्रिड १७.८% एसएल) - २५० मिली",
-      description: "Systemic insecticide for quick knockdown and long-lasting control of sucking pests like aphids, jassids, thrips and whiteflies in cotton, chilli, paddy and sugarcane.",
-      descriptionMr: "मावा, तुडतुडे, फुलकिडे आणि पांढरी माशी यांच्या प्रभावी नियंत्रणासाठी सिस्टेमिक कीटकनाशक.",
+      sellerId: s1,
+      categoryId: catMap.get("certified-seeds"),
+      title: "Prashant Seeds Phule Samarth F1 Hybrid Onion Seeds - 1 Kg",
+      titleMr: "प्रशांत सीड्स फुले समर्थ एफ१ संकरित कांदा बियाणे - १ किलो",
+      description: "Premier Kharif and Late Kharif dark red onion seed variety with uniform globular bulb shape, excellent storage keeping quality (4-5 months) and high export market value.",
+      descriptionMr: "चांगला साठवणूक कालावधी (४-५ महिने) आणि गर्द लाल रंगाचे दर्जेदार कांदा बियाणे. नाशिक, पुणे व सोलापूर जिल्ह्यांसाठी आदर्श.",
       type: "SUPPLY",
-      subCategory: "Insecticide",
-      pricePaise: 89000, // ₹890
-      stock: 45,
-      safetyWarning: "DANGER / POISON: Use protective gloves and face mask during spraying. Keep away from water bodies and domestic pets.",
-      toxicityColor: "Yellow", // Highly Toxic label
-      cibRegistrationNo: "CIR-1823/2001-Imidacloprid(SL)(212)-104",
-      activeIngredients: "Imidacloprid 17.8% w/w",
-      dosageRecommendation: "0.5 ml to 1 ml per litre of water",
-      villageTown: "Baramati",
-      district: "Pune",
+      subCategory: "Vegetable Seed",
+      targetCrops: "Onion (कांदा)",
+      suitableSoil: "Well-drained Sandy Loam to Clay Loam (मध्यम निचऱ्याची जमीन)",
+      maharashtraRegion: "Nashik, Pune, Ahmednagar, Solapur (नाशिक, पारनेर, चाकण, बार्शी)",
+      pricePaise: 180000, // ₹1,800
+      stock: 80,
+      toxicityColor: "Green",
+      villageTown: "Nashik",
+      district: "Nashik",
       state: "Maharashtra",
-      deliveryAvailable: true,
-      deliveryFeePaise: 3000,
-      imagesJson: JSON.stringify([
-        "https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?w=800"
-      ]),
-      specificationsJson: JSON.stringify({
-        "Brand": "Bayer CropScience",
-        "Active Ingredient": "Imidacloprid 17.8% SL",
-        "Volume": "250 ml",
-        "Target Crops": "Cotton, Chilli, Paddy, Mango, Tomato"
-      })
-    },
-    // Supply 4: Jain Irrigation Drip Kit
-    {
-      sellerId,
-      categoryId: catMap.get("irrigation-solar"),
-      title: "Jain Irrigation 1-Acre Inline Drip Kit (16mm, 40cm spacing)",
-      titleMr: "जैन इरिगेशन १-एकर ठिबक सिंचन किट (१६ मिमी)",
-      description: "Complete water-saving micro-irrigation package for 1 acre orchard or row crop farming. Includes Screen Filter, Mainline, Submain, Venturi injector and 16mm inline lateral tubes.",
-      descriptionMr: "१ एकर शेतीसाठी पूर्ण ठिबक सिंचन संच. पाणी व खतांची ६०% पर्यंत बचत.",
-      type: "SUPPLY",
-      subCategory: "Micro Irrigation",
-      pricePaise: 1850000, // ₹18,500
-      stock: 15,
-      villageTown: "Baramati",
-      district: "Pune",
-      state: "Maharashtra",
-      deliveryAvailable: true,
-      deliveryFeePaise: 15000,
-      imagesJson: JSON.stringify([
-        "https://images.unsplash.com/photo-1563514227147-6d2ff665a6a0?w=800"
-      ]),
-      specificationsJson: JSON.stringify({
-        "Coverage": "1 Acre",
-        "Tube Diameter": "16 mm",
-        "Dripper Spacing": "40 cm",
-        "Filter Type": "2 Inch Screen Filter with Pressure Gauge"
-      })
+      imagesJson: JSON.stringify(["https://images.unsplash.com/photo-1586771107445-d3ca888129ff?w=800"])
     }
   ];
 
-  for (const prod of productsData) {
-    await prisma.product.create({ data: prod });
+  for (const item of catalog) {
+    await prisma.product.create({ data: item });
   }
 
-  console.log(`✅ Seed successfully completed!`);
-  console.log(`👤 Admin Account: admin@krishirent.in (Any OTP code verified via DB or console)`);
-  console.log(`👨‍🌾 Farmer Account: farmer@krishirent.in`);
-  console.log(`🏬 Seller Account: seller@krishirent.in`);
-  console.log(`🌾 Loaded ${categories.length} categories and ${productsData.length} rich agri equipment listings.`);
+  console.log(`✅ Successfully seeded comprehensive Maharashtra Agricultural Catalog:`);
+  console.log(`🌾 Loaded ${catalog.length} precision machinery implements & regulated crop protection supplies.`);
+  console.log(`🗺️ Covers Western Maharashtra, Vidarbha, Marathwada, Khandesh, and Konkan regions.`);
 }
 
 main()
