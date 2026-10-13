@@ -19,7 +19,11 @@ import {
   getSellerDashboard, 
   createOrUpdateSellerProduct, 
   getAdminOverview, 
-  approveSeller 
+  approveSeller,
+  adminGetAllProducts,
+  adminCreateProduct,
+  adminUpdateProduct,
+  adminDeleteProduct
 } from "../controllers/dashboardController";
 import { requireAuth, requireRole } from "../middleware/auth";
 
@@ -60,3 +64,9 @@ adminRouter.patch("/sellers/:sellerId/verify", approveSeller);
 adminRouter.get("/upi-config", getMerchantUpiConfig);
 adminRouter.post("/upi-config", updateMerchantUpiConfig);
 adminRouter.post("/orders/:orderId/verify-payment", verifyOrderPaymentByAdmin);
+
+// Admin Product & Equipment Management Endpoints
+adminRouter.get("/products", adminGetAllProducts);
+adminRouter.post("/products", adminCreateProduct);
+adminRouter.put("/products/:id", adminUpdateProduct);
+adminRouter.delete("/products/:id", adminDeleteProduct);

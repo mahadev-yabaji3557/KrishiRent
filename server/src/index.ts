@@ -23,7 +23,14 @@ const PORT = process.env.PORT || 5000;
 // Security Middleware
 app.use(helmet());
 app.use(cors({
-  origin: process.env.CLIENT_URL || "http://localhost:5173",
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, curl) or any onrender.com domain or localhost
+    if (!origin || origin.endsWith(".onrender.com") || origin.includes("localhost")) {
+      callback(null, true);
+    } else {
+      callback(null, true); // Permissive in production for agricultural portal
+    }
+  },
   credentials: true,
 }));
 

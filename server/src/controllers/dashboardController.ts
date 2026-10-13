@@ -307,3 +307,179 @@ export async function approveSeller(req: AuthRequest, res: Response): Promise<vo
     res.status(500).json({ success: false, message: error.message });
   }
 }
+
+// --- ADMIN DIRECT PRODUCT / EQUIPMENT MANAGEMENT ---
+export async function adminGetAllProducts(_req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const products = await prisma.product.findMany({
+      include: { category: true, seller: true },
+      orderBy: { createdAt: "desc" }
+    });
+    res.json({ success: true, data: products });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+export async function adminCreateProduct(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const {
+      title,
+      titleMr,
+      description,
+      descriptionMr,
+      type,
+      categoryId,
+      subCategory,
+      pricePaise,
+      hourlyRatePaise,
+      acreRatePaise,
+      securityDepositPaise,
+      stockQuantity = 1,
+      minRentalHours = 1,
+      minRentalDays = 1,
+      district,
+      state = "Maharashtra",
+      regionMaharashtra,
+      suitableSoilTypes,
+      targetCrops,
+      hpRating,
+      fuelType,
+      implementsIncluded,
+      images,
+      specifications,
+      safetyWarning,
+      toxicityColor,
+      cibRegistrationNo,
+      activeIngredients,
+      dosageRecommendation,
+    } = req.body;
+
+    let seller = await prisma.sellerProfile.findFirst();
+    if (!seller) {
+      const defaultAdmin = await prisma.user.findFirst({ where: { role: "ADMIN" } });
+      seller = await prisma.sellerProfile.create({
+        data: {
+          userId: defaultAdmin?.id || req.user!.id,
+          businessName: "KrishiRent Admin Official Hub",
+          farmOrShopAddress: "Krishi Bhavan, Shivajinagar",
+          pincode: "411005",
+          district: "Pune",
+          state: "Maharashtra",
+          isVerified: true
+        }
+      });
+    }
+
+    const product = await prisma.product.create({
+      data: {
+        sellerId: seller.id,
+        title,
+        titleMr: titleMr || null,
+        description,
+        descriptionMr: descriptionMr || null,
+        type,
+        categoryId,
+        subCategory: subCategory || null,
+        pricePaise: Number(pricePaise) || 0,
+        hourlyRatePaise: hourlyRatePaise ? Number(hourlyRatePaise) : null,
+        perAcreRatePaise: acreRatePaise ? Number(acreRatePaise) : null,
+        securityDepositPaise: securityDepositPaise ? Number(securityDepositPaise) : 0,
+        stock: Number(stockQuantity) || 1,
+        horsepower: hpRating ? Number(hpRating) : null,
+        villageTown: "Krishi Bhavan",
+        district: district || "Pune",
+        state: state || "Maharashtra",
+        maharashtraRegion: regionMaharashtra || "Western Maharashtra",
+        suitableSoil: suitableSoilTypes ? (Array.isArray(suitableSoilTypes) ? suitableSoilTypes.join(", ") : String(suitableSoilTypes)) : null,
+        targetCrops: targetCrops ? (Array.isArray(targetCrops) ? targetCrops.join(", ") : String(targetCrops)) : null,
+        imagesJson: JSON.stringify(Array.isArray(images) && images.length > 0 ? images : ["https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0?w=800"]),
+        specificationsJson: specifications ? JSON.stringify(specifications) : null,
+        safetyWarning: safetyWarning || null,
+        toxicityColor: toxicityColor || null,
+        cibRegistrationNo: cibRegistrationNo || null,
+        activeIngredients: activeIngredients || null,
+        dosageRecommendation: dosageRecommendation || null,
+        isApproved: true,
+        isActive: true,
+      }
+    });
+
+    await prisma.auditLog.create({
+      data: {
+        userId: req.user!.id,
+        action: "ADMIN_PRODUCT_CREATED",
+        detailsJson: JSON.stringify({ productId: product.id, title: product.title })
+      }
+    });
+
+    res.json({ success: true, message: "Equipment/product created successfully by Admin", data: product });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+}
+
+export async function adminUpdateProduct(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const { id } = req.params;
+    const updateData: any = { ...req.body };
+
+    if (updateData.pricePaise) updateData.pricePaise = Number(updateData.pricePaise);
+    if (updateData.hourlyRatePaise) updateData.hourlyRatePaise = Number(updateData.hourlyRatePaise);
+    if (updateData.acreRatePaise) updateData.acreRatePaise = Number(updateData.acreRatePaise);
+    if (updateData.securityDepositPaise) updateData.securityDepositPaise = Number(updateData.securityDepositPaise);
+    if (updateData.stockQuantity) updateData.stockQuantity = Number(updateData.stockQuantity);
+    if (updateData.hpRating) updateData.hpRating = Number(updateData.hpRating);
+
+    if (Array.isArray(updateData.images)) {
+      updateData.imagesJson = JSON.stringify(updateData.images);
+      delete updateData.images;
+    }
+    if (Array.isArray(updateData.suitableSoilTypes)) {
+      updateData.suitableSoilTypes = JSON.stringify(updateData.suitableSoilTypes);
+    }
+    if (Array.isArray(updateData.targetCrops)) {
+      updateData.targetCrops = JSON.stringify(updateData.targetCrops);
+    }
+    if (updateData.specifications && typeof updateData.specifications === "object") {
+      updateData.specificationsJson = JSON.stringify(updateData.specifications);
+      delete updateData.specifications;
+    }
+
+    const updated = await prisma.product.update({
+      where: { id },
+      data: updateData
+    });
+
+    await prisma.auditLog.create({
+      data: {
+        userId: req.user!.id,
+        action: "ADMIN_PRODUCT_UPDATED",
+        detailsJson: JSON.stringify({ productId: id, title: updated.title })
+      }
+    });
+
+    res.json({ success: true, message: "Equipment/product updated successfully by Admin", data: updated });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+}
+
+export async function adminDeleteProduct(req: AuthRequest, res: Response): Promise<void> {
+  try {
+    const { id } = req.params;
+    await prisma.product.delete({ where: { id } });
+
+    await prisma.auditLog.create({
+      data: {
+        userId: req.user!.id,
+        action: "ADMIN_PRODUCT_DELETED",
+        detailsJson: JSON.stringify({ productId: id })
+      }
+    });
+
+    res.json({ success: true, message: "Product deleted successfully" });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+}
