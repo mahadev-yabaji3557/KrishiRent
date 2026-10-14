@@ -62,8 +62,11 @@ export const AuthPage: React.FC = () => {
     if (res.data.success) {
      setOtpStep(true);
      setStatusMessage(res.data.message);
-     if (res.data.devOtp) setDevOtpHint(res.data.devOtp);
-     setCooldown(45);
+     if (res.data.devOtp) {
+      setDevOtpHint(res.data.devOtp);
+      setOtp(res.data.devOtp);
+     }
+     setCooldown(10);
     }
    } else {
     const res = await axios.post(`${API_BASE_URL}/api/auth/signin/init`, {
@@ -72,8 +75,11 @@ export const AuthPage: React.FC = () => {
     if (res.data.success) {
      setOtpStep(true);
      setStatusMessage(res.data.message);
-     if (res.data.devOtp) setDevOtpHint(res.data.devOtp);
-     setCooldown(45);
+     if (res.data.devOtp) {
+      setDevOtpHint(res.data.devOtp);
+      setOtp(res.data.devOtp);
+     }
+     setCooldown(10);
     }
    }
   } catch (err: any) {
@@ -102,7 +108,13 @@ export const AuthPage: React.FC = () => {
     setToken(res.data.token);
     setUser(res.data.user);
     await fetchUser();
-    navigate(res.data.user.role === "SELLER" ? "/seller-dashboard" : "/dashboard");
+    if (res.data.user?.role === "ADMIN") {
+      navigate("/admin");
+     } else if (res.data.user?.role === "SELLER") {
+      navigate("/seller-dashboard");
+     } else {
+      navigate("/dashboard");
+     }
    }
   } catch (err: any) {
    setErrorMessage(err.response?.data?.message || "OTP verification failed. Please try again.");
@@ -133,6 +145,47 @@ export const AuthPage: React.FC = () => {
    </div>
 
    <div className="bg-white p-6 sm:p-8 rounded-2xl border border-stone-200 shadow-sm space-y-6">
+    {/* Quick Demo Access Profiles */}
+    {!otpStep && (
+     <div className="bg-stone-50 border border-stone-200 p-3.5 rounded-xl space-y-2">
+      <span className="text-[11px] font-bold text-stone-600 block uppercase tracking-wider">
+       ⚡ One-Click Instant Login Profiles:
+      </span>
+      <div className="grid grid-cols-3 gap-2 text-[11px]">
+       <button
+        type="button"
+        onClick={() => {
+         setEmail("admin@krishirent.in");
+         setMode("signin");
+        }}
+        className="p-2 rounded-lg border border-purple-200 bg-purple-50 text-purple-900 font-bold hover:bg-purple-100 text-center transition"
+       >
+        👑 Admin
+       </button>
+       <button
+        type="button"
+        onClick={() => {
+         setEmail("patil.agro@krishirent.in");
+         setMode("signin");
+        }}
+        className="p-2 rounded-lg border border-amber-200 bg-amber-50 text-amber-900 font-bold hover:bg-amber-100 text-center transition"
+       >
+        🚜 Seller
+       </button>
+       <button
+        type="button"
+        onClick={() => {
+         setEmail("yabajianand@gmail.com");
+         setMode("signin");
+        }}
+        className="p-2 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-900 font-bold hover:bg-emerald-100 text-center transition"
+       >
+        🌾 Farmer
+       </button>
+      </div>
+     </div>
+    )}
+
     {/* Toggle Mode buttons */}
     {!otpStep && (
      <div className="flex border border-stone-200 rounded-xl p-1 bg-stone-50 text-xs font-semibold">
@@ -164,20 +217,18 @@ export const AuthPage: React.FC = () => {
      </div>
     )}
 
-    {/* Development Helper Badge */}
+    {/* Verification OTP Box */}
     {devOtpHint && (
-     <div className="p-3 bg-amber-50 border border-amber-200 text-amber-900 text-xs rounded-xl flex items-center justify-between">
-      <div className="flex items-center gap-2">
-       <Terminal className="w-4 h-4 text-amber-700 shrink-0" />
-       <span>Dev Terminal Fallback OTP: <strong>{devOtpHint}</strong></span>
+     <div className="p-3.5 bg-emerald-50 border border-emerald-300 text-emerald-950 text-xs rounded-xl space-y-1.5 shadow-xs">
+      <div className="flex items-center justify-between">
+       <span className="font-bold text-emerald-800">Verification Code:</span>
+       <span className="text-xl font-mono font-black tracking-widest text-emerald-900 bg-emerald-200/90 px-3 py-1 rounded-md">
+        {devOtpHint}
+       </span>
       </div>
-      <button
-       type="button"
-       onClick={() => setOtp(devOtpHint)}
-       className="bg-amber-600 text-white px-2 py-0.5 rounded text-[11px] font-bold"
-      >
-       Auto-Fill
-      </button>
+      <p className="text-[11px] text-emerald-700">
+       ✨ Auto-filled below. You can also enter master demo code <strong>123456</strong>.
+      </p>
      </div>
     )}
 
@@ -307,7 +358,7 @@ export const AuthPage: React.FC = () => {
         className="w-full text-center tracking-[12px] text-2xl font-black py-3 border border-stone-300 rounded-xl bg-stone-50 focus:bg-white focus:outline-emerald-600"
        />
        <p className="text-[11px] text-stone-500 mt-1.5 text-center">
-        Valid for 5 minutes. Check console logs if testing in development mode.
+        Valid for 10 minutes. Click Verify or enter master code 123456.
        </p>
       </div>
 

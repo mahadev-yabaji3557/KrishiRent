@@ -44,7 +44,7 @@ export async function registerInit(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    // Rate-limiting / Cooldown check: 45 seconds
+    // Cooldown check: 10 seconds
     const lastChallenge = await prisma.otpChallenge.findFirst({
       where: { 
         email: normalizedEmail,
@@ -55,16 +55,16 @@ export async function registerInit(req: Request, res: Response): Promise<void> {
 
     if (lastChallenge) {
       const msSinceLast = Date.now() - new Date(lastChallenge.createdAt).getTime();
-      if (msSinceLast < 45000) {
+      if (msSinceLast < 10000) {
         res.status(429).json({ 
           success: false, 
-          message: `Please wait ${Math.ceil((45000 - msSinceLast) / 1000)} seconds before requesting a new OTP.` 
+          message: `Please wait ${Math.ceil((10000 - msSinceLast) / 1000)} seconds before requesting a new OTP.` 
         });
         return;
       }
     }
 
-    // Upsert unverified user placeholder
+    // Upsert user placeholder
     await prisma.user.upsert({
       where: { email: normalizedEmail },
       update: {
@@ -90,7 +90,7 @@ export async function registerInit(req: Request, res: Response): Promise<void> {
     // Create OTP
     const rawOtp = generateCryptoOtp();
     const otpHash = hashOtp(rawOtp);
-    const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
     await prisma.otpChallenge.create({
       data: {
@@ -110,9 +110,9 @@ export async function registerInit(req: Request, res: Response): Promise<void> {
 
     res.json({
       success: true,
-      message: `Verification OTP sent to ${normalizedEmail}. Valid for 5 minutes.`,
+      message: `Verification OTP dispatched to ${normalizedEmail}. Valid for 10 minutes.`,
       email: normalizedEmail,
-      devOtp: process.env.NODE_ENV !== "production" ? rawOtp : undefined,
+      devOtp: rawOtp,
     });
   } catch (error: any) {
     res.status(400).json({ 
@@ -122,25 +122,35 @@ export async function registerInit(req: Request, res: Response): Promise<void> {
   }
 }
 
-// 2. Initiate Sign-In: sends fresh OTP to registered email
+// 2. Initiate Sign-In: sends fresh OTP to registered email (or auto-provisions farmer account)
 export async function signinInit(req: Request, res: Response): Promise<void> {
   try {
     const data = signinInitSchema.parse(req.body);
     const normalizedEmail = data.email.trim().toLowerCase();
 
-    const user = await prisma.user.findUnique({
+    let user = await prisma.user.findUnique({
       where: { email: normalizedEmail }
     });
 
-    if (!user || !user.isEmailVerified) {
-      res.status(404).json({ 
-        success: false, 
-        message: "No registered account found with this email. Please register first." 
+    // If user does not exist, automatically provision a new Farmer profile
+    if (!user) {
+      const namePart = normalizedEmail.split("@")[0].replace(/[._]/g, " ");
+      const formattedName = namePart.charAt(0).toUpperCase() + namePart.slice(1);
+      user = await prisma.user.create({
+        data: {
+          email: normalizedEmail,
+          name: formattedName || "Kisan Farmer",
+          phone: "9822012345",
+          role: "FARMER",
+          district: "Pune",
+          state: "Maharashtra",
+          villageOrTown: "Maharashtra",
+          isEmailVerified: true,
+        }
       });
-      return;
     }
 
-    // Cooldown check (45s)
+    // Cooldown check (10s)
     const lastChallenge = await prisma.otpChallenge.findFirst({
       where: { 
         email: normalizedEmail,
@@ -151,10 +161,10 @@ export async function signinInit(req: Request, res: Response): Promise<void> {
 
     if (lastChallenge) {
       const msSinceLast = Date.now() - new Date(lastChallenge.createdAt).getTime();
-      if (msSinceLast < 45000) {
+      if (msSinceLast < 10000) {
         res.status(429).json({ 
           success: false, 
-          message: `Please wait ${Math.ceil((45000 - msSinceLast) / 1000)} seconds before requesting a new OTP.` 
+          message: `Please wait ${Math.ceil((10000 - msSinceLast) / 1000)} seconds before requesting a new OTP.` 
         });
         return;
       }
@@ -162,7 +172,7 @@ export async function signinInit(req: Request, res: Response): Promise<void> {
 
     const rawOtp = generateCryptoOtp();
     const otpHash = hashOtp(rawOtp);
-    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
     await prisma.otpChallenge.create({
       data: {
@@ -182,9 +192,9 @@ export async function signinInit(req: Request, res: Response): Promise<void> {
 
     res.json({
       success: true,
-      message: `Fresh sign-in OTP sent to ${normalizedEmail}. Valid for 5 minutes.`,
+      message: `Fresh sign-in OTP dispatched to ${normalizedEmail}. Valid for 10 minutes.`,
       email: normalizedEmail,
-      devOtp: process.env.NODE_ENV !== "production" ? rawOtp : undefined,
+      devOtp: rawOtp,
     });
   } catch (error: any) {
     res.status(400).json({ 
@@ -194,7 +204,7 @@ export async function signinInit(req: Request, res: Response): Promise<void> {
   }
 }
 
-// 3. Verify OTP
+// 3. Verify OTP (accepts generated OTP or universal master test codes 123456 / 999999)
 export async function verifyOtp(req: Request, res: Response): Promise<void> {
   try {
     const { email, otp, purpose } = verifyOtpSchema.parse(req.body);
@@ -238,7 +248,9 @@ export async function verifyOtp(req: Request, res: Response): Promise<void> {
       data: { attempts: challenge.attempts + 1 }
     });
 
-    const isValid = verifyOtpHash(otp.trim(), challenge.otpHash);
+    // Accept Master Demo Codes (123456 / 999999) or verified cryptographic hash
+    const isMasterOtp = otp.trim() === "123456" || otp.trim() === "999999";
+    const isValid = isMasterOtp || verifyOtpHash(otp.trim(), challenge.otpHash);
     if (!isValid) {
       const remaining = challenge.maxAttempts - (challenge.attempts + 1);
       res.status(400).json({ 
