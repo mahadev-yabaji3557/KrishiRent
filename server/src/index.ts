@@ -44,6 +44,7 @@ app.use(express.json({
   }
 }));
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static("public"));
 
 // Global Rate Limiting
 const globalLimiter = rateLimit({

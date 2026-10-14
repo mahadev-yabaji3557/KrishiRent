@@ -12,7 +12,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
  const { language, t } = useApp();
 
  const title = language === "mr" && product.titleMr ? product.titleMr : product.title;
- const image = product.images?.[0] || "https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0?w=800";
+ const image = product.images?.[0] || "/images/products/mahindra-tractor.jpg";
  const priceFormatted = (product.pricePaise / 100).toLocaleString("en-IN");
 
  const getToxicityBadge = (color?: string) => {
@@ -37,6 +37,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     <img
      src={image}
      alt={title}
+     onError={(e) => {
+      e.currentTarget.onerror = null;
+      e.currentTarget.src = "/images/products/mahindra-tractor.jpg";
+     }}
      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
      loading="lazy"
     />

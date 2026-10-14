@@ -207,7 +207,7 @@ async function main() {
       villageTown: "Baramati",
       district: "Pune",
       state: "Maharashtra",
-      imagesJson: JSON.stringify(["https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0?w=800"]),
+      imagesJson: JSON.stringify(["/images/products/mahindra-tractor.jpg"]),
       specificationsJson: JSON.stringify({ "Engine": "4 Cylinder, 2979 CC", "Lift Capacity": "1480 kg", "PTO": "42 HP" })
     },
     {
@@ -231,7 +231,7 @@ async function main() {
       villageTown: "Indapur",
       district: "Pune",
       state: "Maharashtra",
-      imagesJson: JSON.stringify(["https://images.unsplash.com/photo-1589876735824-3437c355fb50?w=800"])
+      imagesJson: JSON.stringify(["/images/products/hydraulic-plough.jpg"])
     },
 
     // 2. NASHIK / MARATHWADA: Grapes, Pomegranate & Onion (Light to Medium Loamy Soil)
@@ -256,7 +256,7 @@ async function main() {
       villageTown: "Niphad",
       district: "Nashik",
       state: "Maharashtra",
-      imagesJson: JSON.stringify(["https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?w=800"])
+      imagesJson: JSON.stringify(["/images/products/orchard-sprayer.jpg"])
     },
 
     // 3. VIDARBHA & MARATHWADA: Cotton & Soybean Belt (Akola, Yavatmal, Nanded, Jalna)
@@ -280,7 +280,7 @@ async function main() {
       villageTown: "Akola",
       district: "Akola",
       state: "Maharashtra",
-      imagesJson: JSON.stringify(["https://images.unsplash.com/photo-1563514227147-6d2ff665a6a0?w=800"])
+      imagesJson: JSON.stringify(["/images/products/seed-drill.jpg"])
     },
     {
       sellerId: s2,
@@ -302,7 +302,7 @@ async function main() {
       villageTown: "Yavatmal",
       district: "Yavatmal",
       state: "Maharashtra",
-      imagesJson: JSON.stringify(["https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=800"])
+      imagesJson: JSON.stringify(["/images/products/multicrop-thresher.jpg"])
     },
 
     // 4. KONKAN REGION: Paddy Fields, Cashew & Mango (Laterite Red Soil)
@@ -326,7 +326,7 @@ async function main() {
       villageTown: "Chiplun",
       district: "Ratnagiri",
       state: "Maharashtra",
-      imagesJson: JSON.stringify(["https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?w=800"])
+      imagesJson: JSON.stringify(["/images/products/vst-power-tiller.jpg"])
     },
 
     // 5. CROP-SPECIFIC PESTICIDES & FUNGICIDES (Statutory CIB-RC Compliance)
@@ -354,7 +354,7 @@ async function main() {
       villageTown: "Jalgaon",
       district: "Jalgaon",
       state: "Maharashtra",
-      imagesJson: JSON.stringify(["https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?w=800"])
+      imagesJson: JSON.stringify(["/images/products/upl-ulala.jpg"])
     },
 
     // B. Pomegranate & Grape Bacterial Blight / Downy Mildew:
@@ -381,7 +381,7 @@ async function main() {
       villageTown: "Solapur",
       district: "Solapur",
       state: "Maharashtra",
-      imagesJson: JSON.stringify(["https://images.unsplash.com/photo-1628352081506-83c43123ed6d?w=800"])
+      imagesJson: JSON.stringify(["/images/products/bayer-aliette.jpg"])
     },
 
     // C. Sugarcane Early Shoot Borer & White Grub:
@@ -408,7 +408,7 @@ async function main() {
       villageTown: "Kolhapur",
       district: "Kolhapur",
       state: "Maharashtra",
-      imagesJson: JSON.stringify(["https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?w=800"])
+      imagesJson: JSON.stringify(["/images/products/fmc-coragen.jpg"])
     },
 
     // 6. FERTILIZERS & SOIL HEALTH (IFFCO, Mahadhan, Water Soluble Fertigation)
@@ -430,7 +430,7 @@ async function main() {
       villageTown: "Pune",
       district: "Pune",
       state: "Maharashtra",
-      imagesJson: JSON.stringify(["https://images.unsplash.com/photo-1628352081506-83c43123ed6d?w=800"])
+      imagesJson: JSON.stringify(["/images/products/mahadhan-npk.jpg"])
     },
     {
       sellerId: s1,
@@ -450,7 +450,7 @@ async function main() {
       villageTown: "Baramati",
       district: "Pune",
       state: "Maharashtra",
-      imagesJson: JSON.stringify(["https://images.unsplash.com/photo-1586771107445-d3ca888129ff?w=800"])
+      imagesJson: JSON.stringify(["/images/products/iffco-fertilizer.jpg"])
     },
 
     // 7. CERTIFIED SEEDS (Mahabeej & University Certified Varieties)
@@ -473,7 +473,7 @@ async function main() {
       villageTown: "Akola",
       district: "Akola",
       state: "Maharashtra",
-      imagesJson: JSON.stringify(["https://images.unsplash.com/photo-1586771107445-d3ca888129ff?w=800"])
+      imagesJson: JSON.stringify(["/images/products/soybean-seeds.jpg"])
     },
     {
       sellerId: s1,
@@ -493,7 +493,7 @@ async function main() {
       villageTown: "Nashik",
       district: "Nashik",
       state: "Maharashtra",
-      imagesJson: JSON.stringify(["https://images.unsplash.com/photo-1586771107445-d3ca888129ff?w=800"])
+      imagesJson: JSON.stringify(["/images/products/onion-seeds.jpg"])
     }
   ];
 

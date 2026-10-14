@@ -113,7 +113,7 @@ export const CustomerDashboardPage: React.FC = () => {
        <div key={r.id} className="bg-white p-5 rounded-2xl border border-stone-200 shadow-sm flex flex-col md:flex-row gap-5 items-start md:items-center justify-between">
         <div className="flex gap-4 items-center">
          <img
-          src={r.product?.images?.[0] || "https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0?w=800"}
+          src={r.product?.images?.[0] || "/images/products/mahindra-tractor.jpg"}
           alt={r.product?.title}
           className="w-20 h-20 rounded-xl object-cover bg-stone-100 shrink-0"
          />

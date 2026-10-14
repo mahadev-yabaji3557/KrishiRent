@@ -387,8 +387,12 @@ export const CartCheckoutPage: React.FC = () => {
        {cartItems.map((item) => (
         <div key={item.id} className="py-4 flex gap-4 items-start">
          <img
-          src={item.product.images?.[0] || "https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0?w=800"}
+          src={item.product.images?.[0] || "/images/products/mahindra-tractor.jpg"}
           alt={item.product.title}
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = "/images/products/mahindra-tractor.jpg";
+          }}
           className="w-20 h-20 rounded-xl object-cover bg-stone-100 shrink-0"
          />
          <div className="flex-1">

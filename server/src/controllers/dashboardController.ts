@@ -187,7 +187,7 @@ export async function createOrUpdateSellerProduct(req: AuthRequest, res: Respons
         state: state || seller.state,
         deliveryAvailable: Boolean(deliveryAvailable),
         deliveryFeePaise: Number(deliveryFeePaise || 0),
-        imagesJson: JSON.stringify(Array.isArray(images) && images.length > 0 ? images : ["https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0?w=800"]),
+        imagesJson: JSON.stringify(Array.isArray(images) && images.length > 0 ? images : ["/images/products/mahindra-tractor.jpg"]),
         specificationsJson: specifications ? JSON.stringify(specifications) : null,
         safetyWarning: safetyWarning || null,
         toxicityColor: toxicityColor || null,
@@ -393,7 +393,7 @@ export async function adminCreateProduct(req: AuthRequest, res: Response): Promi
         maharashtraRegion: regionMaharashtra || "Western Maharashtra",
         suitableSoil: suitableSoilTypes ? (Array.isArray(suitableSoilTypes) ? suitableSoilTypes.join(", ") : String(suitableSoilTypes)) : null,
         targetCrops: targetCrops ? (Array.isArray(targetCrops) ? targetCrops.join(", ") : String(targetCrops)) : null,
-        imagesJson: JSON.stringify(Array.isArray(images) && images.length > 0 ? images : ["https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0?w=800"]),
+        imagesJson: JSON.stringify(Array.isArray(images) && images.length > 0 ? images : ["/images/products/mahindra-tractor.jpg"]),
         specificationsJson: specifications ? JSON.stringify(specifications) : null,
         safetyWarning: safetyWarning || null,
         toxicityColor: toxicityColor || null,
@@ -422,33 +422,49 @@ export async function adminCreateProduct(req: AuthRequest, res: Response): Promi
 export async function adminUpdateProduct(req: AuthRequest, res: Response): Promise<void> {
   try {
     const { id } = req.params;
-    const updateData: any = { ...req.body };
+    const body = req.body || {};
 
-    if (updateData.pricePaise) updateData.pricePaise = Number(updateData.pricePaise);
-    if (updateData.hourlyRatePaise) updateData.hourlyRatePaise = Number(updateData.hourlyRatePaise);
-    if (updateData.acreRatePaise) updateData.acreRatePaise = Number(updateData.acreRatePaise);
-    if (updateData.securityDepositPaise) updateData.securityDepositPaise = Number(updateData.securityDepositPaise);
-    if (updateData.stockQuantity) updateData.stockQuantity = Number(updateData.stockQuantity);
-    if (updateData.hpRating) updateData.hpRating = Number(updateData.hpRating);
+    const cleanData: any = {};
+    if (body.title !== undefined) cleanData.title = String(body.title);
+    if (body.titleMr !== undefined) cleanData.titleMr = body.titleMr ? String(body.titleMr) : null;
+    if (body.description !== undefined) cleanData.description = String(body.description);
+    if (body.descriptionMr !== undefined) cleanData.descriptionMr = body.descriptionMr ? String(body.descriptionMr) : null;
+    if (body.type !== undefined) cleanData.type = String(body.type);
+    if (body.categoryId !== undefined) cleanData.categoryId = String(body.categoryId);
+    if (body.subCategory !== undefined) cleanData.subCategory = body.subCategory ? String(body.subCategory) : null;
+    if (body.targetCrops !== undefined) cleanData.targetCrops = body.targetCrops ? String(body.targetCrops) : null;
+    if (body.suitableSoil !== undefined) cleanData.suitableSoil = body.suitableSoil ? String(body.suitableSoil) : null;
+    if (body.targetPestOrDisease !== undefined) cleanData.targetPestOrDisease = body.targetPestOrDisease ? String(body.targetPestOrDisease) : null;
+    if (body.maharashtraRegion !== undefined) cleanData.maharashtraRegion = body.maharashtraRegion ? String(body.maharashtraRegion) : null;
+    if (body.pricePaise !== undefined) cleanData.pricePaise = Number(body.pricePaise);
+    if (body.hourlyRatePaise !== undefined) cleanData.hourlyRatePaise = body.hourlyRatePaise ? Number(body.hourlyRatePaise) : null;
+    if (body.perAcreRatePaise !== undefined) cleanData.perAcreRatePaise = body.perAcreRatePaise ? Number(body.perAcreRatePaise) : null;
+    if (body.securityDepositPaise !== undefined) cleanData.securityDepositPaise = body.securityDepositPaise ? Number(body.securityDepositPaise) : 0;
+    if (body.stock !== undefined) cleanData.stock = Number(body.stock);
+    if (body.condition !== undefined) cleanData.condition = body.condition ? String(body.condition) : null;
+    if (body.modelYear !== undefined) cleanData.modelYear = body.modelYear ? Number(body.modelYear) : null;
+    if (body.horsepower !== undefined) cleanData.horsepower = body.horsepower ? Number(body.horsepower) : null;
+    if (body.villageTown !== undefined) cleanData.villageTown = String(body.villageTown);
+    if (body.district !== undefined) cleanData.district = String(body.district);
+    if (body.state !== undefined) cleanData.state = String(body.state);
+    if (body.deliveryAvailable !== undefined) cleanData.deliveryAvailable = Boolean(body.deliveryAvailable);
+    if (body.deliveryFeePaise !== undefined) cleanData.deliveryFeePaise = Number(body.deliveryFeePaise || 0);
+    if (body.isActive !== undefined) cleanData.isActive = Boolean(body.isActive);
+    if (body.isApproved !== undefined) cleanData.isApproved = Boolean(body.isApproved);
 
-    if (Array.isArray(updateData.images)) {
-      updateData.imagesJson = JSON.stringify(updateData.images);
-      delete updateData.images;
+    if (Array.isArray(body.images)) {
+      cleanData.imagesJson = JSON.stringify(body.images);
+    } else if (body.imagesJson !== undefined) {
+      cleanData.imagesJson = typeof body.imagesJson === "string" ? body.imagesJson : JSON.stringify(body.imagesJson);
     }
-    if (Array.isArray(updateData.suitableSoilTypes)) {
-      updateData.suitableSoilTypes = JSON.stringify(updateData.suitableSoilTypes);
-    }
-    if (Array.isArray(updateData.targetCrops)) {
-      updateData.targetCrops = JSON.stringify(updateData.targetCrops);
-    }
-    if (updateData.specifications && typeof updateData.specifications === "object") {
-      updateData.specificationsJson = JSON.stringify(updateData.specifications);
-      delete updateData.specifications;
+
+    if (body.specifications && typeof body.specifications === "object") {
+      cleanData.specificationsJson = JSON.stringify(body.specifications);
     }
 
     const updated = await prisma.product.update({
       where: { id },
-      data: updateData
+      data: cleanData
     });
 
     await prisma.auditLog.create({

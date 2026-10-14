@@ -81,7 +81,7 @@ export const SellerDashboardPage: React.FC = () => {
      villageTown: villageTown || "Baramati",
      district,
      state: "Maharashtra",
-     images: imageUrl ? [imageUrl] : ["https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0?w=800"],
+     images: imageUrl ? [imageUrl] : ["/images/products/mahindra-tractor.jpg"],
     },
     {
      headers: { Authorization: `Bearer ${token}` }
